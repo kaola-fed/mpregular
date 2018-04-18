@@ -1,6 +1,6 @@
 var ejs = require('ejs');
 var tpl = fs.readFileSync('./todomvc.html');
-var ssr = 
+// var ssr = 
 
 var template = ejs.compile(str, options);
 template(data);
@@ -19,5 +19,5 @@ module.exports = {
 
 
 render.forEachChat(function(chart){
-  chart.col chart.row
+  // chart.col chart.row
 })
