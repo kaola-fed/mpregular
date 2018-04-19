@@ -175,7 +175,9 @@ gulp.task('watch', ["build", 'testbundle'], function(){
   gulp.watch(['test/spec/*.js', 'lib/**/*.js'], ['jshint','testbundle'])
 })
 
-
+gulp.task('watch:build', ["build"], function(){
+  gulp.watch(['test/spec/*.js', 'lib/**/*.js'], ['build','testbundle'])
+})
 
 // 
 gulp.task('jshint', function(){

@@ -20,6 +20,7 @@
   "homepage": "http://regularjs.github.io",
   "scripts": {
     "watch": "gulp watch",
+    "watch:build": "gulp watch:build",
     "test": "gulp travis --phantomjs",
     "prepublish": "gulp build"
   },
