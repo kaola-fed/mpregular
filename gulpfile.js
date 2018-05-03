@@ -3,7 +3,7 @@ var path = require('path');
 var karma = require('karma').server;
 var _ = require('./lib/util.js');
 var gulp = require('gulp');
-var git = require('gulp-git');
+// var git = require('gulp-git');
 var spawn = require('child_process').spawn;
 var shell = require('gulp-shell');
 var runSequence = require('run-sequence')
@@ -175,7 +175,9 @@ gulp.task('watch', ["build", 'testbundle'], function(){
   gulp.watch(['test/spec/*.js', 'lib/**/*.js'], ['jshint','testbundle'])
 })
 
-
+gulp.task('watch:build', ["build"], function(){
+  gulp.watch(['test/spec/*.js', 'lib/**/*.js'], ['build','testbundle'])
+})
 
 // 
 gulp.task('jshint', function(){
