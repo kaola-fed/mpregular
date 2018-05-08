@@ -5,7 +5,7 @@
 
 # mpregular
 
-基于 [RegularJS](https://github.com/regularjs/regular) 实现的小程序开发框架。可以直接用 `RegularJS` 进行小程序开发，提升将原油 Regular 项目转化为小程序的效率。
+基于 [RegularJS](https://github.com/regularjs/regular) 实现的小程序开发框架。可以直接用 `RegularJS` 进行小程序开发，提升将原有 Regular 项目转化为小程序的效率，以及保证一致的开发体验。
 
 ## Page 生命周期
 
@@ -31,14 +31,16 @@
 - `r-style`
 - `r-class`
 - `r-animation`
+- `r-html`
 
 ## 工具
 
-- [mpregular-loader](https://www.npmjs.com/package/mpregular-loader)
+- [mpregular-loader](https://github.com/kaola-fed/mpregular-loader)
 
 ## demo
 
 - [mpregular-example](https://github.com/kaola-fed/mpregular-example)
+
 ## reference
 
 - [RegularJS](https://github.com/regularjs/regular)
