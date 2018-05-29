@@ -19,16 +19,16 @@
 - regular 常用基本语法，`{#if}`、`{#list}`、`{#inc this.$body}`
 - `r-model`
 - `r-hide`
+- `r-html`
+- `filter`
 
 ## 暂不支持
 
 - `animation`
-- `filter`
 - `directive`
 - `r-style`
 - `r-class`
 - `r-animation`
-- `r-html`
 
 ## 工具
 
@@ -42,3 +42,5 @@
 
 - [RegularJS](https://github.com/regularjs/regular)
 - [mpvue](https://github.com/Meituan-Dianping/mpvue)
+- [wxParse](https://github.com/icindy/wxParse)
+
