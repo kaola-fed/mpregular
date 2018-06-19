@@ -1,6 +1,6 @@
 /**
 @author	leeluolee
-@version	0.6.0-beta.6
+@version	0.0.26
 @homepage	http://regularjs.github.io
 */
 (function webpackUniversalModuleDefinition(root, factory) {
@@ -57,19 +57,19 @@ return /******/ (function(modules) { // webpackBootstrap
 /************************************************************************/
 /******/ ([
 /* 0 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 	var env =  __webpack_require__(1);
-	var config = __webpack_require__(7); 
-	var Regular = module.exports = __webpack_require__(8);
+	var config = __webpack_require__(8); 
+	var Regular = module.exports = __webpack_require__(9);
 	var Parser = Regular.Parser;
 	var Lexer = Regular.Lexer;
 
 	// if(env.browser){
-	    __webpack_require__(26);
-	    __webpack_require__(29);
-	    __webpack_require__(30);
-	    Regular.dom = __webpack_require__(15);
+	    __webpack_require__(47);
+	    // require("./directive/animation");
+	    __webpack_require__(50);
+	    // Regular.dom = require("./dom");
 	// }
 	Regular.env = env;
 	Regular.util = __webpack_require__(3);
@@ -84,7 +84,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  var ast = new Parser(str).parse();
 	  return !options.stringify? ast : JSON.stringify(ast);
 	}
-	Regular.Cursor =__webpack_require__(22) 
+	Regular.Cursor =__webpack_require__(23) 
 
 	Regular.isServer = env.node;
 	Regular.isRegular = function( Comp ){
@@ -94,9 +94,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 
-/***/ },
+/***/ }),
 /* 1 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {// some fixture test;
 	// ---------------
@@ -114,9 +114,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(2)))
 
-/***/ },
+/***/ }),
 /* 2 */
-/***/ function(module, exports) {
+/***/ (function(module, exports) {
 
 	// shim for using process in browser
 	var process = module.exports = {};
@@ -288,6 +288,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	process.removeListener = noop;
 	process.removeAllListeners = noop;
 	process.emit = noop;
+	process.prependListener = noop;
+	process.prependOnceListener = noop;
+
+	process.listeners = function (name) { return [] }
 
 	process.binding = function (name) {
 	    throw new Error('process.binding is not supported');
@@ -300,20 +304,20 @@ return /******/ (function(modules) { // webpackBootstrap
 	process.umask = function() { return 0; };
 
 
-/***/ },
+/***/ }),
 /* 3 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(global, setImmediate) {__webpack_require__(5)();
+	/* WEBPACK VAR INJECTION */(function(global, setImmediate) {__webpack_require__(6)();
 
 
 
 	var _  = module.exports;
-	var entities = __webpack_require__(6);
+	var entities = __webpack_require__(7);
 	var o2str = ({}).toString;
 	var win = typeof window !=='undefined'? window: global;
 	var MAX_PRIORITY = 9999;
-	var config = __webpack_require__(7);
+	var config = __webpack_require__(8);
 
 
 	_.noop = function(){};
@@ -333,10 +337,19 @@ return /******/ (function(modules) { // webpackBootstrap
 	  return o1;
 	}
 
+
 	_.keys = Object.keys? Object.keys: function(obj){
 	  var res = [];
 	  for(var i in obj) if(obj.hasOwnProperty(i)){
 	    res.push(i);
+	  }
+	  return res;
+	}
+
+	_.values = Object.values? Object.values: function(obj){
+	  var res = [];
+	  for(var i in obj) if(obj.hasOwnProperty(i)){
+	    res.push(obj[i]);
 	  }
 	  return res;
 	}
@@ -380,86 +393,137 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 
-
-
 	_.makePredicate = function makePredicate(words, prefix) {
-	    if (typeof words === "string") {
-	        words = words.split(" ");
-	    }
-	    var f = "",
-	    cats = [];
-	    out: for (var i = 0; i < words.length; ++i) {
-	        for (var j = 0; j < cats.length; ++j){
-	          if (cats[j][0].length === words[i].length) {
-	              cats[j].push(words[i]);
-	              continue out;
-	          }
+	  if (typeof words === "string") {
+	      words = words.split(" ");
+	  }
+	  var f = "",
+	  cats = [];
+	  out: for (var i = 0; i < words.length; ++i) {
+	      for (var j = 0; j < cats.length; ++j){
+	        if (cats[j][0].length === words[i].length) {
+	            cats[j].push(words[i]);
+	            continue out;
 	        }
-	        cats.push([words[i]]);
-	    }
-	    function compareTo(arr) {
-	        if (arr.length === 1) return f += "return str === '" + arr[0] + "';";
-	        f += "switch(str){";
-	        for (var i = 0; i < arr.length; ++i){
-	           f += "case '" + arr[i] + "':";
-	        }
-	        f += "return true}return false;";
-	    }
+	      }
+	      cats.push([words[i]]);
+	  }
 
-	    // When there are more than three length categories, an outer
-	    // switch first dispatches on the lengths, to save on comparisons.
-	    if (cats.length > 3) {
-	        cats.sort(function(a, b) {
-	            return b.length - a.length;
-	        });
-	        f += "switch(str.length){";
-	        for (var i = 0; i < cats.length; ++i) {
-	            var cat = cats[i];
-	            f += "case " + cat[0].length + ":";
-	            compareTo(cat);
-	        }
-	        f += "}";
-
-	        // Otherwise, simply generate a flat `switch` statement.
-	    } else {
-	        compareTo(words);
+	  if (cats.length < 3) {
+	    return function(str) {
+	      if (words && words.indexOf(str) !== -1) {
+	        return true;
+	      }
+	      return false;
 	    }
-	    return new Function("str", f);
+	  }
+
+	  var lenMap = {};
+	  for (var k = 0; k < cats.length; ++k) {
+	    lenMap[cats[k][0].length] = cats[k];
+	  }
+
+	  return function(str) {
+	    var words = lenMap[str.length];
+	    if (words && words.indexOf(str) !== -1) {
+	      return true;
+	    }
+	    return false;
+	  }
 	}
+
+	// _.makePredicate = function makePredicate(words, prefix) {
+	//     if (typeof words === "string") {
+	//         words = words.split(" ");
+	//     }
+	//     var f = "",
+	//     cats = [];
+	//     out: for (var i = 0; i < words.length; ++i) {
+	//         for (var j = 0; j < cats.length; ++j){
+	//           if (cats[j][0].length === words[i].length) {
+	//               cats[j].push(words[i]);
+	//               continue out;
+	//           }
+	//         }
+	//         cats.push([words[i]]);
+	//     }
+	//     function compareTo(arr) {
+	//         if (arr.length === 1) return f += "return str === '" + arr[0] + "';";
+	//         f += "switch(str){";
+	//         for (var i = 0; i < arr.length; ++i){
+	//            f += "case '" + arr[i] + "':";
+	//         }
+	//         f += "return true}return false;";
+	//     }
+
+	//     // When there are more than three length categories, an outer
+	//     // switch first dispatches on the lengths, to save on comparisons.
+	//     if (cats.length > 3) {
+	//         cats.sort(function(a, b) {
+	//             return b.length - a.length;
+	//         });
+	//         f += "switch(str.length){";
+	//         for (var i = 0; i < cats.length; ++i) {
+	//             var cat = cats[i];
+	//             f += "case " + cat[0].length + ":";
+	//             compareTo(cat);
+	//         }
+	//         f += "}";
+
+	//         // Otherwise, simply generate a flat `switch` statement.
+	//     } else {
+	//         compareTo(words);
+	//     }
+	//     return new Function("str", f);
+	// }
 
 
 	_.trackErrorPos = (function (){
 	  // linebreak
 	  var lb = /\r\n|[\n\r\u2028\u2029]/g;
-	  var minRange = 20, maxRange = 20;
+	  var minRange = 50, maxRange = 20;
 	  function findLine(lines, pos){
 	    var tmpLen = 0;
 	    for(var i = 0,len = lines.length; i < len; i++){
 	      var lineLen = (lines[i] || "").length;
 
 	      if(tmpLen + lineLen > pos) {
-	        return {num: i, line: lines[i], start: pos - i - tmpLen , prev:lines[i-1], next: lines[i+1] };
+	        return {num: i, line: lines[i], start: pos - tmpLen , prev:lines[i-1], next: lines[i+1] };
 	      }
 	      // 1 is for the linebreak
-	      tmpLen = tmpLen + lineLen ;
+	      tmpLen = tmpLen + lineLen + 1;
 	    }
 	  }
-	  function formatLine(str,  start, num, target){
+	  function formatLine(str, column, row, target){
 	    var len = str.length;
-	    var min = start - minRange;
+	    var min = column - minRange;
 	    if(min < 0) min = 0;
-	    var max = start + maxRange;
+	    var max = column + maxRange;
 	    if(max > len) max = len;
 
 	    var remain = str.slice(min, max);
-	    var prefix = "[" +(num+1) + "] " + (min > 0? ".." : "")
+	    var prefix = "[" +(row+1) + "] " + (min > 0? ".." : "")
 	    var postfix = max < len ? "..": "";
-	    var res = prefix + remain + postfix;
-	    if(target) res += "\n" + new Array(start-min + prefix.length + 1).join(" ") + "^^^";
+	    var res = prefix + leadingTabsToSpaces(remain) + postfix;
+	    if(target) {
+	      res += "\n" + spaces(
+	        leadingTabsToSpaces(str.slice(min,column)).length +
+	        prefix.length
+	      ) + "^";
+	    }
 	    return res;
 	  }
+	  function spaces(n) {
+	    return new Array(n+1).join(" ")
+	  }
+	  function leadingTabsToSpaces(str) {
+	    return str.replace( /^\t+/, function(match) {
+	      return match.split('\t').join('  ');
+	    } )
+	  }
 	  return function(input, pos){
-	    if(pos > input.length-1) pos = input.length-1;
+	    if( pos > input.length-1 ) pos = input.length-1;
+
 	    lb.lastIndex = 0;
 	    var lines = input.split(lb);
 	    var line = findLine(lines,pos);
@@ -755,7 +819,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  return group.inject || group.$inject;
 	}
 
-	_.blankReg = /\s+/; 
+	_.blankReg = /^\s*$/; 
 
 	_.getCompileFn = function(source, ctx, options){
 	  return function( passedOptions ){
@@ -885,6 +949,43 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	})();
 
+	_.simpleDiff = function (now, old){
+	  var nlen = now.length;
+	  var olen = old.length;
+	  if(nlen !== olen){
+	    return true;
+	  }
+	  for(var i = 0; i < nlen ; i++){
+	    if(now[i] !== old[i]) return  true;
+	  }
+	  return false
+
+	}
+
+	_.getLocalComponentIndex = function (ast, options) {
+	  var extra = options.extra;
+	  if (extra.__listInfo__) {
+	    var listItemId = _.getListIndexArray(extra);
+	    if (listItemId.length > 0) {
+	      return ast.localComponentIndex + '-' + listItemId.join('-');
+	    }
+	  }
+	  return ast.localComponentIndex + '';
+	}
+
+	_.getListIndexArray = function(extra) {
+	  var listInfo = extra.__listInfo__;
+	  var listIndexArray = [];
+	  for (var i = listInfo.length - 1; i >= 0; --i) {
+	    var itemId = extra[listInfo[i].indexName || listInfo[i].keyName];
+	    if (itemId === undefined || itemId === null) {
+	      return [];
+	    }
+	    listIndexArray.push(itemId)
+	  }
+	  return listIndexArray;
+	}
+
 
 
 
@@ -894,26 +995,29 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(4).setImmediate))
 
-/***/ },
+/***/ }),
 /* 4 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(setImmediate, clearImmediate) {var nextTick = __webpack_require__(2).nextTick;
+	/* WEBPACK VAR INJECTION */(function(global) {var scope = (typeof global !== "undefined" && global) ||
+	            (typeof self !== "undefined" && self) ||
+	            window;
 	var apply = Function.prototype.apply;
-	var slice = Array.prototype.slice;
-	var immediateIds = {};
-	var nextImmediateId = 0;
 
 	// DOM APIs, for completeness
 
 	exports.setTimeout = function() {
-	  return new Timeout(apply.call(setTimeout, window, arguments), clearTimeout);
+	  return new Timeout(apply.call(setTimeout, scope, arguments), clearTimeout);
 	};
 	exports.setInterval = function() {
-	  return new Timeout(apply.call(setInterval, window, arguments), clearInterval);
+	  return new Timeout(apply.call(setInterval, scope, arguments), clearInterval);
 	};
 	exports.clearTimeout =
-	exports.clearInterval = function(timeout) { timeout.close(); };
+	exports.clearInterval = function(timeout) {
+	  if (timeout) {
+	    timeout.close();
+	  }
+	};
 
 	function Timeout(id, clearFn) {
 	  this._id = id;
@@ -921,7 +1025,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 	Timeout.prototype.unref = Timeout.prototype.ref = function() {};
 	Timeout.prototype.close = function() {
-	  this._clearFn.call(window, this._id);
+	  this._clearFn.call(scope, this._id);
 	};
 
 	// Does not start the time, just sets up the members needed.
@@ -947,38 +1051,216 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 	};
 
-	// That's not how node.js implements it but the exposed api is the same.
-	exports.setImmediate = typeof setImmediate === "function" ? setImmediate : function(fn) {
-	  var id = nextImmediateId++;
-	  var args = arguments.length < 2 ? false : slice.call(arguments, 1);
+	// setimmediate attaches itself to the global object
+	__webpack_require__(5);
+	// On some exotic environments, it's not clear which object `setimmediate` was
+	// able to install onto.  Search each possibility in the same order as the
+	// `setimmediate` library.
+	exports.setImmediate = (typeof self !== "undefined" && self.setImmediate) ||
+	                       (typeof global !== "undefined" && global.setImmediate) ||
+	                       (this && this.setImmediate);
+	exports.clearImmediate = (typeof self !== "undefined" && self.clearImmediate) ||
+	                         (typeof global !== "undefined" && global.clearImmediate) ||
+	                         (this && this.clearImmediate);
 
-	  immediateIds[id] = true;
+	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
-	  nextTick(function onNextTick() {
-	    if (immediateIds[id]) {
-	      // fn.call() is faster so we optimize for the common use-case
-	      // @see http://jsperf.com/call-apply-segu
-	      if (args) {
-	        fn.apply(null, args);
-	      } else {
-	        fn.call(null);
-	      }
-	      // Prevent ids from leaking
-	      exports.clearImmediate(id);
-	    }
-	  });
-
-	  return id;
-	};
-
-	exports.clearImmediate = typeof clearImmediate === "function" ? clearImmediate : function(id) {
-	  delete immediateIds[id];
-	};
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(4).setImmediate, __webpack_require__(4).clearImmediate))
-
-/***/ },
+/***/ }),
 /* 5 */
-/***/ function(module, exports) {
+/***/ (function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(global, process) {(function (global, undefined) {
+	    "use strict";
+
+	    if (global.setImmediate) {
+	        return;
+	    }
+
+	    var nextHandle = 1; // Spec says greater than zero
+	    var tasksByHandle = {};
+	    var currentlyRunningATask = false;
+	    var doc = global.document;
+	    var registerImmediate;
+
+	    function setImmediate(callback) {
+	      // Callback can either be a function or a string
+	      if (typeof callback !== "function") {
+	        callback = new Function("" + callback);
+	      }
+	      // Copy function arguments
+	      var args = new Array(arguments.length - 1);
+	      for (var i = 0; i < args.length; i++) {
+	          args[i] = arguments[i + 1];
+	      }
+	      // Store and register the task
+	      var task = { callback: callback, args: args };
+	      tasksByHandle[nextHandle] = task;
+	      registerImmediate(nextHandle);
+	      return nextHandle++;
+	    }
+
+	    function clearImmediate(handle) {
+	        delete tasksByHandle[handle];
+	    }
+
+	    function run(task) {
+	        var callback = task.callback;
+	        var args = task.args;
+	        switch (args.length) {
+	        case 0:
+	            callback();
+	            break;
+	        case 1:
+	            callback(args[0]);
+	            break;
+	        case 2:
+	            callback(args[0], args[1]);
+	            break;
+	        case 3:
+	            callback(args[0], args[1], args[2]);
+	            break;
+	        default:
+	            callback.apply(undefined, args);
+	            break;
+	        }
+	    }
+
+	    function runIfPresent(handle) {
+	        // From the spec: "Wait until any invocations of this algorithm started before this one have completed."
+	        // So if we're currently running a task, we'll need to delay this invocation.
+	        if (currentlyRunningATask) {
+	            // Delay by doing a setTimeout. setImmediate was tried instead, but in Firefox 7 it generated a
+	            // "too much recursion" error.
+	            setTimeout(runIfPresent, 0, handle);
+	        } else {
+	            var task = tasksByHandle[handle];
+	            if (task) {
+	                currentlyRunningATask = true;
+	                try {
+	                    run(task);
+	                } finally {
+	                    clearImmediate(handle);
+	                    currentlyRunningATask = false;
+	                }
+	            }
+	        }
+	    }
+
+	    function installNextTickImplementation() {
+	        registerImmediate = function(handle) {
+	            process.nextTick(function () { runIfPresent(handle); });
+	        };
+	    }
+
+	    function canUsePostMessage() {
+	        // The test against `importScripts` prevents this implementation from being installed inside a web worker,
+	        // where `global.postMessage` means something completely different and can't be used for this purpose.
+	        if (global.postMessage && !global.importScripts) {
+	            var postMessageIsAsynchronous = true;
+	            var oldOnMessage = global.onmessage;
+	            global.onmessage = function() {
+	                postMessageIsAsynchronous = false;
+	            };
+	            global.postMessage("", "*");
+	            global.onmessage = oldOnMessage;
+	            return postMessageIsAsynchronous;
+	        }
+	    }
+
+	    function installPostMessageImplementation() {
+	        // Installs an event handler on `global` for the `message` event: see
+	        // * https://developer.mozilla.org/en/DOM/window.postMessage
+	        // * http://www.whatwg.org/specs/web-apps/current-work/multipage/comms.html#crossDocumentMessages
+
+	        var messagePrefix = "setImmediate$" + Math.random() + "$";
+	        var onGlobalMessage = function(event) {
+	            if (event.source === global &&
+	                typeof event.data === "string" &&
+	                event.data.indexOf(messagePrefix) === 0) {
+	                runIfPresent(+event.data.slice(messagePrefix.length));
+	            }
+	        };
+
+	        if (global.addEventListener) {
+	            global.addEventListener("message", onGlobalMessage, false);
+	        } else {
+	            global.attachEvent("onmessage", onGlobalMessage);
+	        }
+
+	        registerImmediate = function(handle) {
+	            global.postMessage(messagePrefix + handle, "*");
+	        };
+	    }
+
+	    function installMessageChannelImplementation() {
+	        var channel = new MessageChannel();
+	        channel.port1.onmessage = function(event) {
+	            var handle = event.data;
+	            runIfPresent(handle);
+	        };
+
+	        registerImmediate = function(handle) {
+	            channel.port2.postMessage(handle);
+	        };
+	    }
+
+	    function installReadyStateChangeImplementation() {
+	        var html = doc.documentElement;
+	        registerImmediate = function(handle) {
+	            // Create a <script> element; its readystatechange event will be fired asynchronously once it is inserted
+	            // into the document. Do so, thus queuing up the task. Remember to clean up once it's been called.
+	            var script = doc.createElement("script");
+	            script.onreadystatechange = function () {
+	                runIfPresent(handle);
+	                script.onreadystatechange = null;
+	                html.removeChild(script);
+	                script = null;
+	            };
+	            html.appendChild(script);
+	        };
+	    }
+
+	    function installSetTimeoutImplementation() {
+	        registerImmediate = function(handle) {
+	            setTimeout(runIfPresent, 0, handle);
+	        };
+	    }
+
+	    // If supported, we should attach to the prototype of global, since that is where setTimeout et al. live.
+	    var attachTo = Object.getPrototypeOf && Object.getPrototypeOf(global);
+	    attachTo = attachTo && attachTo.setTimeout ? attachTo : global;
+
+	    // Don't get fooled by e.g. browserify environments.
+	    if ({}.toString.call(global.process) === "[object process]") {
+	        // For Node.js before 0.9
+	        installNextTickImplementation();
+
+	    } else if (canUsePostMessage()) {
+	        // For non-IE10 modern browsers
+	        installPostMessageImplementation();
+
+	    } else if (global.MessageChannel) {
+	        // For web workers, where supported
+	        installMessageChannelImplementation();
+
+	    } else if (doc && "onreadystatechange" in doc.createElement("script")) {
+	        // For IE 6–8
+	        installReadyStateChangeImplementation();
+
+	    } else {
+	        // For older browsers
+	        installSetTimeoutImplementation();
+	    }
+
+	    attachTo.setImmediate = setImmediate;
+	    attachTo.clearImmediate = clearImmediate;
+	}(typeof self === "undefined" ? typeof global === "undefined" ? this : global : self));
+
+	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(2)))
+
+/***/ }),
+/* 6 */
+/***/ (function(module, exports) {
 
 	// shim for es5
 	var slice = [].slice;
@@ -1092,9 +1374,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 
-/***/ },
-/* 6 */
-/***/ function(module, exports) {
+/***/ }),
+/* 7 */
+/***/ (function(module, exports) {
 
 	// http://stackoverflow.com/questions/1354064/how-to-convert-characters-to-html-entities-using-plain-javascript
 	var entities = {
@@ -1357,9 +1639,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	module.exports  = entities;
 
-/***/ },
-/* 7 */
-/***/ function(module, exports) {
+/***/ }),
+/* 8 */
+/***/ (function(module, exports) {
 
 	
 	module.exports = {
@@ -1368,36 +1650,38 @@ return /******/ (function(modules) { // webpackBootstrap
 	  'PRECOMPILE': false
 	}
 
-/***/ },
-/* 8 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 9 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/**
 	 * render for component in browsers
 	 */
 
 	var env = __webpack_require__(1);
-	var Lexer = __webpack_require__(9);
-	var Parser = __webpack_require__(10);
-	var config = __webpack_require__(7);
+	var Lexer = __webpack_require__(10);
+	var Parser = __webpack_require__(12);
+	var config = __webpack_require__(8);
 	var _ = __webpack_require__(3);
-	var extend = __webpack_require__(12);
-	var shared = __webpack_require__(13);
+	var extend = __webpack_require__(14);
+	var shared = __webpack_require__(15);
 	var combine = {};
-	if(env.browser){
-	  var dom = __webpack_require__(15);
+
+	// if(env.browser){
+	  // var dom = require("../dom");
 	  var walkers = __webpack_require__(17);
-	  var Group = __webpack_require__(21);
-	  var doc = dom.doc;
-	  combine = __webpack_require__(19);
-	}
-	var events = __webpack_require__(23);
-	var Watcher = __webpack_require__(24);
-	var parse = __webpack_require__(14);
-	var filter = __webpack_require__(25);
-	var ERROR = __webpack_require__(16).ERROR;
-	var nodeCursor = __webpack_require__(22);
-	var shared = __webpack_require__(13);
+	  var Group = __webpack_require__(22);
+	  // var doc = dom.doc;
+	  combine = __webpack_require__(21);
+	// }
+	var events = __webpack_require__(43);
+	var Watcher = __webpack_require__(44);
+	var parse = __webpack_require__(16);
+	var filter = __webpack_require__(46);
+	var ERROR = __webpack_require__(20).ERROR;
+	var nodeCursor = __webpack_require__(23);
+	var shared = __webpack_require__(15);
+	var mp = __webpack_require__(24);
 	var NOOP = function(){};
 
 
@@ -1409,51 +1693,59 @@ return /******/ (function(modules) { // webpackBootstrap
 	* @constructor
 	* @param {Object} options specification of the component
 	*/
-	var Regular = function(definition, options){
+	var Regular = function(definition, options = {}) {
+	  if (this.mpType && !options.page) {
+	    var Component = this.constructor;
+	    mp.initMP(this, {
+	      Component,
+	      definition,
+	      options
+	    });
+	    return;
+	  }
+
+
 	  var prevRunning = env.isRunning;
 	  env.isRunning = true;
 	  var node, template, cursor, context = this, body, mountNode;
 	  options = options || {};
 	  definition = definition || {};
 
-
-
 	  var dtemplate = definition.template;
 
-	  if(env.browser) {
+	  // if(env.browser) {
 
-	    if( node = tryGetSelector( dtemplate ) ){
-	      dtemplate = node;
-	    }
-	    if( dtemplate && dtemplate.nodeType ){
-	      definition.template = dtemplate.innerHTML
-	    }
+	  //   if( node = tryGetSelector( dtemplate ) ){
+	  //     dtemplate = node;
+	  //   }
+	  //   if( dtemplate && dtemplate.nodeType ){
+	  //     definition.template = dtemplate.innerHTML
+	  //   }
 	    
-	    mountNode = definition.mountNode;
-	    if(typeof mountNode === 'string'){
-	      mountNode = dom.find( mountNode );
-	      if(!mountNode) throw Error('mountNode ' + mountNode + ' is not found')
-	    } 
+	  //   mountNode = definition.mountNode;
+	  //   if(typeof mountNode === 'string'){
+	  //     mountNode = dom.find( mountNode );
+	  //     if(!mountNode) throw Error('mountNode ' + mountNode + ' is not found')
+	  //   } 
 
-	    if(mountNode){
-	      cursor = nodeCursor(mountNode.firstChild)
-	      delete definition.mountNode
-	    }else{
-	      cursor = options.cursor
-	    }
-	  }
-
-
+	  //   if(mountNode){
+	  //     cursor = nodeCursor(mountNode.firstChild, mountNode)
+	  //     delete definition.mountNode
+	  //   }else{
+	  //     cursor = options.cursor
+	  //   }
+	  // }
 
 	  template = shared.initDefinition(context, definition)
 	  
+	  context.$parent = context.$parent || options.$parent;
 
 	  if(context.$parent){
-	     context.$parent._append(context);
+	    context.$parent._append(context);
 	  }
 	  context._children = [];
 	  context.$refs = {};
-	  context.$root = context.$root || context;
+	  context.$root = context.$root || (options.$parent && options.$parent.$root) || context;
 
 	  var extra = options.extra;
 	  var oldModify = extra && extra.$$modify;
@@ -1508,7 +1800,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  context.$ready = true;
 
 	  context.$emit("$init");
-	  if( context.init ) context.init( context.data );
+	  if(context.init ) context.init( context.data );
 	  context.$emit("$afterInit");
 
 	  env.isRunning = prevRunning;
@@ -1518,6 +1810,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  if (this.devtools) {
 	    this.devtools.emit("init", this)
 	  }
+
 	}
 
 	// check if regular devtools hook exists
@@ -1549,15 +1842,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	    // this.prototype.template = dom.initTemplate(o)
 	    if(template = o.template){
 	      var node, name;
-	      if( env.browser ){
-	        if( node = tryGetSelector(template) ) template = node ;
-	        if( template && template.nodeType ){
+	      // if( env.browser ){
+	      //   if( node = tryGetSelector(template) ) template = node ;
+	      //   if( template && template.nodeType ){
 
-	          if(name = dom.attr(template, 'name')) Regular.component(name, this);
+	      //     if(name = dom.attr(template, 'name')) Regular.component(name, this);
 
-	          template = template.innerHTML;
-	        } 
-	      }
+	      //     template = template.innerHTML;
+	      //   } 
+	      // }
 
 	      if(typeof template === 'string' ){
 	        this.prototype.template = config.PRECOMPILE? new Parser(template).parse(): template;
@@ -1588,9 +1881,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var directives = this._directives, directive;
 	    if(cfg == null){
 	      if( type === 'string' ){
-	        if(directive = directives[name]) return directive;
+	        if( directive = directives[name] ) return directive;
 	        else{
-
 	          var regexp = directives.__regexp__;
 	          for(var i = 0, len = regexp.length; i < len ; i++){
 	            directive = regexp[i];
@@ -1860,7 +2152,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	      return new Group(res);
 	    }
-	    if(typeof ast === 'string') return doc.createTextNode(ast)
+	    if(typeof ast === 'string') {
+	      // return doc.createTextNode(ast)
+	      return;
+	    }
 	    return walkers[ast.type || "default"].call(this, ast, options);
 	  },
 	  _append: function(component){
@@ -1868,31 +2163,51 @@ return /******/ (function(modules) { // webpackBootstrap
 	    component.$parent = this;
 	  },
 	  _handleEvent: function(elem, type, value, attrs){
-	    var Component = this.constructor,
-	      fire = typeof value !== "function"? _.handleEvent.call( this, value, type ) : value,
-	      handler = Component.event(type), destroy;
+	    // var Component = this.constructor,
+	    //   fire = typeof value !== "function"? _.handleEvent.call( this, value, type ) : value,
+	    //   handler = Component.event(type), destroy;
 
-	    if ( handler ) {
-	      destroy = handler.call(this, elem, fire, attrs);
-	    } else {
-	      dom.on(elem, type, fire);
-	    }
-	    return handler ? destroy : function() {
-	      dom.off(elem, type, fire);
-	    }
+	    // if ( handler ) {
+	    //   destroy = handler.call(this, elem, fire, attrs);
+	    // } else {
+	    //   dom.on(elem, type, fire);
+	    // }
+	    // return handler ? destroy : function() {
+	    //   dom.off(elem, type, fire);
+	    // }
+	    var eventId = attrs.eventId;
+	    this._addMPEventHandler(eventId, type, value);
+
+	    return function() {}
 	  },
 	  // 1. 用来处理exprBody -> Function
 	  // 2. list里的循环
 	  _touchExpr: function(expr, ext){
-	    var rawget, ext = this.__ext__, touched = {};
+	    var rawget, touched = {}, expressions = this.expressions;
+	    ext = ext || this.__ext__;
 	    if(expr.type !== 'expression' || expr.touched) return expr;
 
 	    rawget = expr.get;
-	    if(!rawget){
-	      rawget = expr.get = new Function(_.ctxName, _.extName , _.prefix+ "return (" + expr.body + ")");
+	    if(!rawget) {
+	      // rawget = expr.get = new Function(_.ctxName, _.extName , _.prefix+ "return (" + expr.body + ")");
+	      if (expr.holderId !== undefined) {
+	        var exprBody = expr.body;
+	        var holderId = expr.holderId || '0';
+	        rawget = expr.get = function(ctx, e) {
+	          var v = expressions.get[exprBody](ctx, e);
+	          ctx._updateMPHolders(v, {
+	            key: '__holders',
+	            id: holderId,
+	            extra: e,
+	          });
+	          return v;
+	        }
+	      } else {
+	        rawget = expr.get = expressions.get[expr.body];
+	      }
 	      expr.body = null;
 	    }
-	    touched.get = !ext? rawget: function(context, e){
+	    touched.get = !ext? rawget : rawget && function(context, e){
 	      return rawget( context, e || ext )
 	    }
 
@@ -1902,7 +2217,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var self = this;
 	      if(!filters || !_.some(filters, function(filter){ return !self._f_(filter).set }) ){
 	        expr.set = function(ctx, value, ext){
-	          expr.set = new Function(_.ctxName, _.setName , _.extName, _.prefix + setbody);          
+	          // expr.set = new Function(_.ctxName, _.setName , _.extName, _.prefix + setbody);          
+	          expr.set = expressions.set[setbody];
 	          return expr.set(ctx, value, ext);
 	        }
 	      }
@@ -1974,7 +2290,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	    if(computedProperty) {
 	      if(computedProperty.set) return computedProperty.set(this, value);
-	      else _.log("the computed '" + path + "' don't define the set function,  assign data."+path + " altnately", "warn" )
 	    }
 	    data[path] = value;
 	    return value;
@@ -1991,25 +2306,27 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	Regular.filter(filter);
 
+	mp.install(Regular);
+
 	module.exports = Regular;
 
 
+	// function tryGetSelector(tpl){
+	//   var node;
+	//   if( typeof tpl === 'string' && tpl.length < 16 && (node = dom.find( tpl )) ) {
+	//     _.log("pass selector as template has be deprecated, pass node or template string instead", 'warn')
+	//     return node
+	//   }
+	// }
 
-	function tryGetSelector(tpl){
-	  var node;
-	  if( typeof tpl === 'string' && tpl.length < 16 && (node = dom.find( tpl )) ) {
-	    _.log("pass selector as template has be deprecated, pass node or template string instead", 'warn')
-	    return node
-	  }
-	}
 
-
-/***/ },
-/* 9 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 10 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	var _ = __webpack_require__(3);
-	var config = __webpack_require__(7);
+	var config = __webpack_require__(8);
+	var createFSM = __webpack_require__(11);
 
 	// some custom tag  will conflict with the Lexer progress
 	var conflictTag = {"}": "{", "]": "["}, map1, map2;
@@ -2038,12 +2355,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.markEnd = config.END;
 	  }
 
-	  this.input = (input||"").trim();
+	  this.input = input||"";
 	  this.opts = opts || {};
+	  this.syntaxSets = createFSM();
+	  this.state = createFSM();
 	  this.map = this.opts.mode !== 2?  map1: map2;
-	  this.states = ["INIT"];
+	  this.syntaxSets.enter('INIT');
 	  if(opts && opts.expression){
-	     this.states.push("JST");
+	     this.syntaxSets.enter('JST');
 	     this.expression = true;
 	  }
 	}
@@ -2052,17 +2371,19 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 	lo.lex = function(str){
-	  str = (str || this.input).trim();
-	  var tokens = [], split, test,mlen, token, state;
+	  str = str || this.input
+	  var leadingWhitespaces = /^\s*/.exec(str)
+	  str = str.trim();
+	  var tokens = [], split, test,mlen, token, syntax;
 	  this.input = str, 
 	  this.marks = 0;
-	  // init the pos index
-	  this.index=0;
+	  // fix the pos offset caused by trim
+	  this.index=leadingWhitespaces ? leadingWhitespaces[0].length : 0;
 	  var i = 0;
 	  while(str){
 	    i++
-	    state = this.state();
-	    split = this.map[state] 
+	    syntax = this.syntaxSets.get();
+	    split = this.map[syntax];
 	    test = split.TRUNK.exec(str);
 	    if(!test){
 	      this.error('Unrecoginized Token');
@@ -2076,7 +2397,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 
 	  tokens.push({type: 'EOF'});
-
+	  
 	  return tokens;
 	}
 
@@ -2105,30 +2426,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	  if(!marched){ // in ie lt8 . sub capture is "" but ont 
 	    switch(str.charAt(0)){
 	      case "<":
-	        this.enter("TAG");
+	        this.syntaxSets.enter("TAG");
 	        break;
 	      default:
-	        this.enter("JST");
+	        this.syntaxSets.enter("JST");
 	        break;
 	    }
 	  }
 	  return token;
 	}
-	lo.enter = function(state){
-	  this.states.push(state)
-	  return this;
-	}
-
-	lo.state = function(){
-	  var states = this.states;
-	  return states[states.length-1];
-	}
-
-	lo.leave = function(state){
-	  var states = this.states;
-	  if(!state || states[states.length-1] === state) states.pop()
-	}
-
 
 	Lexer.setup = function(){
 	  macro.END = config.END;
@@ -2242,31 +2548,28 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	  // mode1's JST ENTER RULE
 	  ENTER_JST: [/[^\x00<]*?(?={BEGIN})/, function(all){
-	    this.enter('JST');
+	    this.syntaxSets.enter('JST');
 	    if(all) return {type: 'TEXT', value: all}
 	  }],
 
 	  // mode2's JST ENTER RULE
 	  ENTER_JST2: [/[^\x00]*?(?={BEGIN})/, function(all){
-	    this.enter('JST');
+	    this.syntaxSets.enter('JST');
 	    if(all) return {type: 'TEXT', value: all}
 	  }],
 
 	  ENTER_TAG: [/[^\x00]*?(?=<[\w\/\!])/, function(all){ 
-	    this.enter('TAG');
+	    this.syntaxSets.enter('TAG');
 	    if(all) return {type: 'TEXT', value: all}
 	  }],
 
 	  // {~ <div></div> }
 	  BODY_END: [/{SPACE}*{END}/,  function(val){
+	    var sets = this.syntaxSets.all(), slen = sets.length;
 
-	    var states = this.states, slen = states.length;
-
-
-	    if(states[slen-2] === 'JST' ){
-
-	      this.leave('INIT');
-	      this.leave('JST');
+	    if(sets[slen-2] === 'JST'){
+	      this.syntaxSets.leave('INIT');
+	      this.syntaxSets.leave('JST');
 	      return {type: 'END'}
 	    }
 
@@ -2285,18 +2588,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return {type: 'TAG_OPEN', value: one}
 	  }, 'TAG'],
 	  TAG_CLOSE: [/<\/({NAME})[\r\n\f\t ]*>/, function(all, one){
-	    this.leave();
+	    this.syntaxSets.leave();
 	    return {type: 'TAG_CLOSE', value: one }
 	  }, 'TAG'],
 
 	    // mode2's JST ENTER RULE
 	  TAG_ENTER_JST: [/(?={BEGIN})/, function(){
-	    this.enter('JST');
+	    this.syntaxSets.enter('JST');
 	  }, 'TAG'],
 
 
 	  TAG_PUNCHOR: [/[\>\/=&]/, function(all){
-	    if(all === '>') this.leave();
+	    if(all === '>') this.syntaxSets.leave();
 	    return {type: all, value: all }
 	  }, 'TAG'],
 
@@ -2308,13 +2611,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	  TAG_SPACE: [/{SPACE}+/, null, 'TAG'],
 	  TAG_COMMENT: [/<\!--([^\x00]*?)--\>/, function(all){
-	    this.leave()
+	    this.syntaxSets.leave()
 	    // this.leave('TAG')
 	  } ,'TAG'],
 
 	  // 3. JST
 	  // -------------------
 	  JST_OPEN: ['{BEGIN}#{SPACE}*({IDENT})', function(all, name){
+	    this.state.enter('JST_OPEN');
 	    return {
 	      type: 'OPEN',
 	      value: name
@@ -2322,7 +2626,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }, 'JST'],
 	  // title = {~ <div></div>}
 	  JST_BODY_OPEN: ['{BEGIN}~{SPACE}*', function(all, name){
-	    this.enter('INIT');
+	    this.syntaxSets.enter('INIT');
 	    return {
 	      type: 'BODY_OPEN',
 	      value: name
@@ -2331,8 +2635,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	  JST_LEAVE: [/{END}/, function(all){
 	    if(this.markEnd === all && this.expression) return {type: this.markEnd, value: this.markEnd};
 	    if(!this.markEnd || !this.marks ){
-	      this.firstEnterStart = false;
-	      this.leave('JST');
+	      this.state.leave('JST_OPEN');
+	      this.state.leave('JST_EXPR_OPEN');
+	      this.syntaxSets.leave('JST');
 	      return {type: 'END'}
 	    }else{
 	      this.marks--;
@@ -2340,24 +2645,23 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	  }, 'JST'],
 	  JST_CLOSE: [/{BEGIN}\s*\/({IDENT})\s*{END}/, function(all, one){
-	    this.leave('JST');
+	    this.syntaxSets.leave('JST');
 	    return {
 	      type: 'CLOSE',
 	      value: one
 	    }
 	  }, 'JST'],
 	  JST_COMMENT: [/{BEGIN}\!([^\x00]*?)\!{END}/, function(){
-	    this.leave();
+	    this.syntaxSets.leave();
 	  }, 'JST'],
 	  JST_EXPR_OPEN: ['{BEGIN}',function(all, one){
 	    if(all === this.markStart){
 	      if(this.expression) return { type: this.markStart, value: this.markStart };
-	      if(this.firstEnterStart || this.marks){
+	      if(this.state.is('JST_OPEN') || this.state.is('JST_EXPR_OPEN') || this.marks){
 	        this.marks++
-	        this.firstEnterStart = false;
 	        return { type: this.markStart, value: this.markStart };
 	      }else{
-	        this.firstEnterStart = true;
+	        this.state.enter('JST_EXPR_OPEN');
 	      }
 	    }
 	    return {
@@ -2389,15 +2693,52 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = Lexer;
 
 
-/***/ },
-/* 10 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 11 */
+/***/ (function(module, exports) {
+
+	// create a simple finite state machine
+	function createFSM() {
+	  return {
+	    _stack: [],
+	    enter: function(state) {
+	      this._stack.push(state);
+	      return this;
+	    },
+	    leave: function(state) {
+	      var stack = this._stack;
+	      // if state is falsy or state equals to last item in stack
+	      if(!state || stack[stack.length-1] === state) {
+	        stack.pop();
+	      }
+	      return this;
+	    },
+	    get: function() {
+	      var stack = this._stack;
+	      return stack[stack.length - 1];
+	    },
+	    all: function() {
+	      return this._stack;
+	    },
+	    is: function(state) {
+	      var stack = this._stack;
+	      return stack[stack.length - 1] === state
+	    }
+	  }
+	}
+
+	module.exports = createFSM;
+
+
+/***/ }),
+/* 12 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	var _ = __webpack_require__(3);
 
-	var config = __webpack_require__(7);
-	var node = __webpack_require__(11);
-	var Lexer = __webpack_require__(9);
+	var config = __webpack_require__(8);
+	var node = __webpack_require__(13);
+	var Lexer = __webpack_require__(10);
 	var varName = _.varName;
 	var ctxName = _.ctxName;
 	var extName = _.extName;
@@ -2695,6 +3036,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	  variable = this.match('IDENT').value;
 
 	  if(this.eat('IDENT', 'by')){
+	    if(this.eat('IDENT', variable+'_key')){
+	      this.error('can not track by ' + variable + '_key in list statement');
+	    }
 	    if(this.eat('IDENT',variable + '_index')){
 	      track = true;
 	    }else{
@@ -3132,9 +3476,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = Parser;
 
 
-/***/ },
-/* 11 */
-/***/ function(module, exports) {
+/***/ }),
+/* 13 */
+/***/ (function(module, exports) {
 
 	module.exports = {
 	  element: function(name, attrs, children){
@@ -3202,9 +3546,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 
-/***/ },
-/* 12 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 14 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	// (c) 2010-2014 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
 	// Backbone may be freely distributed under the MIT license.
@@ -3302,14 +3646,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 
-/***/ },
-/* 13 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 15 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	var _ = __webpack_require__(3);
-	var config = __webpack_require__(7);
-	var parse = __webpack_require__(14);
-	var node = __webpack_require__(11);
+	var config = __webpack_require__(8);
+	var parse = __webpack_require__(16);
+	var node = __webpack_require__(13);
 
 
 	function initDefinition(context, definition, beforeConfig){
@@ -3455,13 +3799,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	  prepareAttr: prepareAttr
 	}
 
-/***/ },
-/* 14 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 16 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	var exprCache = __webpack_require__(1).exprCache;
 	var _ = __webpack_require__(3);
-	var Parser = __webpack_require__(10);
+	var Parser = __webpack_require__(12);
 	module.exports = {
 	  expression: function(expr, simple){
 	    // @TODO cache
@@ -3477,479 +3821,45 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 
-/***/ },
-/* 15 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/*jshint -W082 */ 
-
-	// thanks for angular && mootools for some concise&cross-platform  implemention
-	// =====================================
-
-	// The MIT License
-	// Copyright (c) 2010-2014 Google, Inc. http://angularjs.org
-
-	// ---
-	// license: MIT-style license. http://mootools.net
-
-
-	if(typeof window !== 'undefined'){
-	  
-	var dom = module.exports;
-	var env = __webpack_require__(1);
-	var _ = __webpack_require__(3);
-	var consts = __webpack_require__(16);
-	var tNode = document.createElement('div')
-	var addEvent, removeEvent;
-	var noop = function(){}
-
-	var namespaces = consts.NAMESPACE;
-
-	dom.body = document.body;
-	dom.doc = document;
-	dom.tNode = tNode;
-
-
-	// camelCase
-	var camelCase = function (str){
-	  return ("" + str).replace(/-\D/g, function(match){
-	    return match.charAt(1).toUpperCase();
-	  });
-	}
-
-
-
-	if(tNode.addEventListener){
-	  addEvent = function(node, type, fn) {
-	    node.addEventListener(type, fn, false);
-	  }
-	  removeEvent = function(node, type, fn) {
-	    node.removeEventListener(type, fn, false) 
-	  }
-	}else{
-	  addEvent = function(node, type, fn) {
-	    node.attachEvent('on' + type, fn);
-	  }
-	  removeEvent = function(node, type, fn) {
-	    node.detachEvent('on' + type, fn); 
-	  }
-	}
-
-
-	dom.msie = parseInt((/msie (\d+)/.exec(navigator.userAgent.toLowerCase()) || [])[1]);
-	if (isNaN(dom.msie)) {
-	  dom.msie = parseInt((/trident\/.*; rv:(\d+)/.exec(navigator.userAgent.toLowerCase()) || [])[1]);
-	}
-
-	dom.find = function(sl){
-	  if(document.querySelector) {
-	    try{
-	      return document.querySelector(sl);
-	    }catch(e){
-
-	    }
-	  }
-	  if(sl.indexOf('#')!==-1) return document.getElementById( sl.slice(1) );
-	}
-
-
-	dom.inject = function(node, refer, position){
-
-	  position = position || 'bottom';
-	  if(!node) return ;
-	  if(Array.isArray(node)){
-	    var tmp = node;
-	    node = dom.fragment();
-	    for(var i = 0,len = tmp.length; i < len ;i++){
-	      node.appendChild(tmp[i])
-	    }
-	  }
-
-	  var firstChild, next;
-	  switch(position){
-	    case 'bottom':
-	      refer.appendChild( node );
-	      break;
-	    case 'top':
-	      if( firstChild = refer.firstChild ){
-	        refer.insertBefore( node, refer.firstChild );
-	      }else{
-	        refer.appendChild( node );
-	      }
-	      break;
-	    case 'after':
-	      if( next = refer.nextSibling ){
-	        next.parentNode.insertBefore( node, next );
-	      }else{
-	        refer.parentNode.appendChild( node );
-	      }
-	      break;
-	    case 'before':
-	      refer.parentNode.insertBefore( node, refer );
-	  }
-	}
-
-
-	dom.id = function(id){
-	  return document.getElementById(id);
-	}
-
-	// createElement 
-	dom.create = function(type, ns){
-	  if(ns === 'svg'){
-	    if(!env.svg) throw Error('the env need svg support')
-	    ns = namespaces.svg;
-	  }
-	  return !ns? document.createElement(type): document.createElementNS(ns, type);
-	}
-
-	// documentFragment
-	dom.fragment = function(){
-	  return document.createDocumentFragment();
-	}
-
-
-
-
-	var specialAttr = {
-	  'class': function(node, value){
-	     ('className' in node && (!node.namespaceURI || node.namespaceURI === namespaces.html  )) ? 
-	      node.className = (value || '') : node.setAttribute('class', value);
-	  },
-	  'for': function(node, value){
-	    ('htmlFor' in node) ? node.htmlFor = value : node.setAttribute('for', value);
-	  },
-	  'style': function(node, value){
-	    (node.style) ? node.style.cssText = value : node.setAttribute('style', value);
-	  },
-	  'value': function(node, value){
-	    node.value = (value != null) ? value : '';
-	  }
-	}
-
-
-	// attribute Setter & Getter
-	dom.attr = function(node, name, value){
-	  if (_.isBooleanAttr(name)) {
-	    if (typeof value !== 'undefined') {
-	      if (!!value) {
-	        node[name] = true;
-	        node.setAttribute(name, name);
-	        // lt ie7 . the javascript checked setting is in valid
-	        //http://bytes.com/topic/javascript/insights/799167-browser-quirk-dynamically-appended-checked-checkbox-does-not-appear-checked-ie
-	        if(dom.msie && dom.msie <=7 && name === 'checked' ) node.defaultChecked = true
-	      } else {
-	        node[name] = false;
-	        node.removeAttribute(name);
-	      }
-	    } else {
-	      return (node[name] ||
-	               (node.attributes.getNamedItem(name)|| noop).specified) ? name : undefined;
-	    }
-	  } else if (typeof (value) !== 'undefined') {
-	    // if in specialAttr;
-	    if(specialAttr[name]) specialAttr[name](node, value);
-	    else if(value === null) node.removeAttribute(name)
-	    else node.setAttribute(name, value);
-	  } else if (node.getAttribute) {
-	    // the extra argument "2" is to get the right thing for a.href in IE, see jQuery code
-	    // some elements (e.g. Document) don't have get attribute, so return undefined
-	    var ret = node.getAttribute(name, 2);
-	    // normalize non-existing attributes to undefined (as jQuery)
-	    return ret === null ? undefined : ret;
-	  }
-	}
-
-
-	dom.on = function(node, type, handler){
-	  var types = type.split(' ');
-	  handler.real = function(ev){
-	    var $event = new Event(ev);
-	    $event.origin = node;
-	    handler.call(node, $event);
-	  }
-	  types.forEach(function(type){
-	    type = fixEventName(node, type);
-	    addEvent(node, type, handler.real);
-	  });
-	  return dom;
-	}
-	dom.off = function(node, type, handler){
-	  var types = type.split(' ');
-	  handler = handler.real || handler;
-	  types.forEach(function(type){
-	    type = fixEventName(node, type);
-	    removeEvent(node, type, handler);
-	  })
-	}
-
-
-	dom.text = (function (){
-	  var map = {};
-	  if (dom.msie && dom.msie < 9) {
-	    map[1] = 'innerText';    
-	    map[3] = 'nodeValue';    
-	  } else {
-	    map[1] = map[3] = 'textContent';
-	  }
-	  
-	  return function (node, value) {
-	    var textProp = map[node.nodeType];
-	    if (value == null) {
-	      return textProp ? node[textProp] : '';
-	    }
-	    node[textProp] = value;
-	  }
-	})();
-
-
-	dom.html = function( node, html ){
-	  if(typeof html === "undefined"){
-	    return node.innerHTML;
-	  }else{
-	    node.innerHTML = html;
-	  }
-	}
-
-	dom.replace = function(node, replaced){
-	  if(replaced.parentNode) replaced.parentNode.replaceChild(node, replaced);
-	}
-
-	dom.remove = function(node){
-	  if(node.parentNode) node.parentNode.removeChild(node);
-	}
-
-	// css Settle & Getter from angular
-	// =================================
-	// it isnt computed style 
-	dom.css = function(node, name, value){
-	  if( typeof (name) === "object" && name ){
-	    for(var i in name){
-	      if( name.hasOwnProperty(i) ){
-	        dom.css( node, i, name[i] );
-	      }
-	    }
-	    return;
-	  }
-	  if ( typeof value !== "undefined" ) {
-
-	    name = camelCase(name);
-	    if(name) node.style[name] = value;
-
-	  } else {
-
-	    var val;
-	    if (dom.msie <= 8) {
-	      // this is some IE specific weirdness that jQuery 1.6.4 does not sure why
-	      val = node.currentStyle && node.currentStyle[name];
-	      if (val === '') val = 'auto';
-	    }
-	    val = val || node.style[name];
-	    if (dom.msie <= 8) {
-	      val = val === '' ? undefined : val;
-	    }
-	    return  val;
-	  }
-	}
-
-	dom.addClass = function(node, className){
-	  var current = node.className || "";
-	  if ((" " + current + " ").indexOf(" " + className + " ") === -1) {
-	    node.className = current? ( current + " " + className ) : className;
-	  }
-	}
-
-	dom.delClass = function(node, className){
-	  var current = node.className || "";
-	  node.className = (" " + current + " ").replace(" " + className + " ", " ").trim();
-	}
-
-	dom.hasClass = function(node, className){
-	  var current = node.className || "";
-	  return (" " + current + " ").indexOf(" " + className + " ") !== -1;
-	}
-
-
-
-	// simple Event wrap
-
-	//http://stackoverflow.com/questions/11068196/ie8-ie7-onchange-event-is-emited-only-after-repeated-selection
-	function fixEventName(elem, name){
-	  return (name === 'change'  &&  dom.msie < 9 && 
-	      (elem && elem.tagName && elem.tagName.toLowerCase()==='input' && 
-	        (elem.type === 'checkbox' || elem.type === 'radio')
-	      )
-	    )? 'click': name;
-	}
-
-	var rMouseEvent = /^(?:click|dblclick|contextmenu|DOMMouseScroll|mouse(?:\w+))$/
-	var doc = document;
-	doc = (!doc.compatMode || doc.compatMode === 'CSS1Compat') ? doc.documentElement : doc.body;
-	function Event(ev){
-	  ev = ev || window.event;
-	  if(ev._fixed) return ev;
-	  this.event = ev;
-	  this.target = ev.target || ev.srcElement;
-
-	  var type = this.type = ev.type;
-	  var button = this.button = ev.button;
-
-	  // if is mouse event patch pageX
-	  if(rMouseEvent.test(type)){ //fix pageX
-	    this.pageX = (ev.pageX != null) ? ev.pageX : ev.clientX + doc.scrollLeft;
-	    this.pageY = (ev.pageX != null) ? ev.pageY : ev.clientY + doc.scrollTop;
-	    if (type === 'mouseover' || type === 'mouseout'){// fix relatedTarget
-	      var related = ev.relatedTarget || ev[(type === 'mouseover' ? 'from' : 'to') + 'Element'];
-	      while (related && related.nodeType === 3) related = related.parentNode;
-	      this.relatedTarget = related;
-	    }
-	  }
-	  // if is mousescroll
-	  if (type === 'DOMMouseScroll' || type === 'mousewheel'){
-	    // ff ev.detail: 3    other ev.wheelDelta: -120
-	    this.wheelDelta = (ev.wheelDelta) ? ev.wheelDelta / 120 : -(ev.detail || 0) / 3;
-	  }
-	  
-	  // fix which
-	  this.which = ev.which || ev.keyCode;
-	  if( !this.which && button !== undefined){
-	    // http://api.jquery.com/event.which/ use which
-	    this.which = ( button & 1 ? 1 : ( button & 2 ? 3 : ( button & 4 ? 2 : 0 ) ) );
-	  }
-	  this._fixed = true;
-	}
-
-	_.extend(Event.prototype, {
-	  stop: function(){
-	    this.preventDefault().stopPropagation();
-	  },
-	  preventDefault: function(){
-	    if (this.event.preventDefault) this.event.preventDefault();
-	    else this.event.returnValue = false;
-	    return this;
-	  },
-	  stopPropagation: function(){
-	    if (this.event.stopPropagation) this.event.stopPropagation();
-	    else this.event.cancelBubble = true;
-	    return this;
-	  },
-	  stopImmediatePropagation: function(){
-	    if(this.event.stopImmediatePropagation) this.event.stopImmediatePropagation();
-	  }
-	})
-
-
-	dom.nextFrame = (function(){
-	    var request = window.requestAnimationFrame ||
-	                  window.webkitRequestAnimationFrame ||
-	                  window.mozRequestAnimationFrame|| 
-	                  function(callback){
-	                    return setTimeout(callback, 16)
-	                  }
-
-	    var cancel = window.cancelAnimationFrame ||
-	                 window.webkitCancelAnimationFrame ||
-	                 window.mozCancelAnimationFrame ||
-	                 window.webkitCancelRequestAnimationFrame ||
-	                 function(tid){
-	                    clearTimeout(tid)
-	                 }
-	  
-	  return function(callback){
-	    var id = request(callback);
-	    return function(){ cancel(id); }
-	  }
-	})();
-
-	// 3ks for angular's raf  service
-	var k
-	dom.nextReflow = dom.msie? function(callback){
-	  return dom.nextFrame(function(){
-	    k = document.body.offsetWidth;
-	    callback();
-	  })
-	}: dom.nextFrame;
-
-	}
-
-
-
-
-
-/***/ },
-/* 16 */
-/***/ function(module, exports) {
-
-	module.exports = {
-	  'COMPONENT_TYPE': 1,
-	  'ELEMENT_TYPE': 2,
-	  'ERROR': {
-	    'UNMATCHED_AST': 101
-	  },
-	  "MSG": {
-	    101: "Unmatched ast and mountNode, report issue at https://github.com/regularjs/regular/issues"
-	  },
-	  'NAMESPACE': {
-	    html: "http://www.w3.org/1999/xhtml",
-	    svg: "http://www.w3.org/2000/svg"
-	  },
-	  'OPTIONS': {
-	    'STABLE_INIT': { stable: !0, init: !0 },
-	    'FORCE_INIT': { force: !0, init: !0 },
-	    'STABLE': {stable: !0},
-	    'INIT': { init: !0 },
-	    'SYNC': { sync: !0 },
-	    'FORCE': { force: !0 }
-	  }
-	}
-
-
-/***/ },
+/***/ }),
 /* 17 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 	var diffArray = __webpack_require__(18).diffArray;
-	var combine = __webpack_require__(19);
-	var animate = __webpack_require__(20);
-	var Parser = __webpack_require__(10);
-	var node = __webpack_require__(11);
-	var Group = __webpack_require__(21);
-	var dom = __webpack_require__(15);
+	var combine = __webpack_require__(21);
+	// var animate = require("./helper/animate");
+	var Parser = __webpack_require__(12);
+	var node = __webpack_require__(13);
+	var Group = __webpack_require__(22);
+	// var dom = require("./dom");
 	var _ = __webpack_require__(3);
-	var consts = __webpack_require__(16);
+	var consts = __webpack_require__(20);
 	var OPTIONS = consts.OPTIONS;
 	var ERROR = consts.ERROR;
 	var MSG = consts.MSG;
-	var nodeCursor = __webpack_require__(22);
-	var config = __webpack_require__(7)
-	var shared = __webpack_require__(13);
+	var nodeCursor = __webpack_require__(23);
+	var config = __webpack_require__(8)
+	var shared = __webpack_require__(15);
+	var dconst = __webpack_require__(20).DIFF
+	var mp = __webpack_require__(24);
 
 
 
 	var walkers = module.exports = {};
 
-
-
 	// used in walkers.list
 	// remove block in group
-	function removeRange(index, rlen, children){
-	  for(var j = 1; j <= rlen; j++){ //removed
-	    var removed = children[ index + j ];
-	    if(removed) removed.destroy(true);
-	  }
-	  children.splice(index+1, rlen);
-	}
-
 
 	walkers.list = function(ast, options){
 
 	  var Regular = walkers.Regular;
-	  var placeholder = document.createComment("Regular list"),
-	    namespace = options.namespace,
+	  // var placeholder = document.createComment("Regular list"),
+	  var namespace = options.namespace,
 	    extra = options.extra;
 
 	  var self = this;
-	  var group = new Group([placeholder]);
+	  var group = new Group([{}]);
+	  // var group = new Group([]);
 	  var children = group.children;
 
 	  var indexName = ast.variable + '_index';
@@ -3959,8 +3869,19 @@ return /******/ (function(modules) { // webpackBootstrap
 	  var track = ast.track, keyOf, extraObj;
 	  var cursor = options.cursor;
 
-	  insertPlaceHolder(placeholder, cursor)
+	  // for mp: `多层级 list
+	  extra = _.createObject(extra);
+	  var __listInfo__ = [
+	    {
+	      indexName: indexName,
+	      keyName: keyName,
+	      variable: variable
+	    }
+	  ].concat(extra.__listInfo__ || []);
 
+	  extra.__listInfo__ = __listInfo__;
+
+	  // insertPlaceHolder(placeholder, cursor)
 
 	  if( track && track !== true ){
 
@@ -3968,46 +3889,89 @@ return /******/ (function(modules) { // webpackBootstrap
 	    extraObj = _.createObject(extra);
 	    keyOf = function( item, index ){
 	      extraObj[ variable ] = item;
-	      extraObj[ indexName ] = index;
 	      // @FIX keyName
 	      return track.get( self, extraObj );
 	    }
 	  }
 
-	  function addRange(index, end, newList, rawNewValue){
+	  function removeRange(index, rlen, children, oldKeyMap){
+	    for(var j = 1; j <= rlen; j++){ //removed
+	      var removed = children[ index + j ];
+	      if( oldKeyMap  ){
+	        var mayBeReuse = keyOf(removed.data[variable]);
+	        // 将被复用
+	        if(typeof oldKeyMap[mayBeReuse] !== 'undefined') {
+	          if(oldKeyMap[mayBeReuse]!==null){//hasn't already moved
+	            removed.inject(false);
+	          }
+	          continue;
+	        }
+	      }
+
+	      // for mp
+	      var eventIds = getEventIdsFromGroup(removed);
+	      for (var i = 0; i < eventIds.length; ++i) {
+	        this._removeMPEventHandler(eventIds[i]);
+	      }
+
+	      removed.destroy(true);
+	    }
+	    children.splice(index+1, rlen);
+	  }
+
+	  function addRange(index, end, newList, rawNewValue, oldKeyMap){
 	    for(var o = index; o < end; o++){ //add
 	      // prototype inherit
 	      var item = newList[o];
-	      var data = _.createObject(extra);
-	      updateTarget(data, o, item, rawNewValue);
+	      var section = null;
 
-	      var section = self.$compile(ast.body, {
-	        extra: data,
-	        namespace:namespace,
-	        record: true,
-	        outer: options.outer,
-	        cursor: cursor
-	      })
-	      section.data = data;
-	      // autolink
-	      var insert =  combine.last(group.get(o));
-	      if(insert.parentNode && !cursor ){
-	        animate.inject(combine.node(section),insert, 'after');
+	      if(oldKeyMap){
+	        var key = keyOf( item );
+	        section = oldKeyMap[key];
+	        // 只能复用一次
+	        if(section) oldKeyMap[key] = null;
+	        // 如果在原来的节点中可以找到，则复用原节点
 	      }
-	      // insert.parentNode.insertBefore(combine.node(section), insert.nextSibling);
+	      var hasReusedSection = !!section;
+
+	      if(!hasReusedSection){
+	        var data = _.createObject(extra);
+	        updateTarget(data, o, item, rawNewValue);
+	        section = self.$compile(ast.body, {
+	          extra: data,
+	          namespace:namespace,
+	          record: true,
+	          outer: options.outer,
+	          cursor: cursor
+	        })
+	        section.data = data;
+	      }else{
+	        // means track reused section
+	        updateTarget(section.data, o, item)
+	      }
+
+
+	      // for mp:
+	      // // autolink
+	      // var insert =  combine.last(group.get(o));
+	      // if(insert.parentNode && !(cursor && cursor.node) ){
+	      //   // hasReusedSection
+	      //   (hasReusedSection?dom:animate).inject(combine.node(section),insert, 'after');
+	      // }
+	      // // insert.parentNode.insertBefore(combine.node(section), insert.nextSibling);
 	      children.splice( o + 1 , 0, section);
 	    }
 	  }
 
 	  function updateTarget(target, index, item, rawNewValue){
-	      target[ indexName ] = index;
-	      if( rawNewValue ){
-	        target[ keyName ] = item;
-	        target[ variable ] = rawNewValue[ item ];
-	      }else{
-	        target[ variable ] = item;
-	        target[keyName] = null
-	      }
+	    target[ indexName ] = index;
+	    if( rawNewValue ){
+	      target[ keyName ] = item;
+	      target[ variable ] = rawNewValue[ item ];
+	    }else{
+	      target[ variable ] = item;
+	      target[keyName] = null
+	    }
 	  }
 
 
@@ -4018,43 +3982,28 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	  }
 
-	  function updateLD(newList, oldList, splices , rawNewValue ){
+	  function updateLD(newList, oldList, steps, rawNewValue ){
 
-	    var cur = placeholder;
+	    // var cur = placeholder;
 	    var m = 0, len = newList.length;
 
-	    if(!splices && (len !==0 || oldList.length !==0)  ){
-	      splices = diffArray(newList, oldList, true);
+	    if(!steps && (len !==0 || oldList.length !==0)  ){
+	      steps = diffArray(newList, oldList, true);
 	    }
 
-	    if(!splices || !splices.length) return;
+	    if(!steps || !steps.length) return;
+	      
+	    for(var i = 0; i < steps.length; i++){ //init
 
-	    for(var i = 0; i < splices.length; i++){ //init
-	      var splice = splices[i];
+	      var splice = steps[i];
 	      var index = splice.index; // beacuse we use a comment for placeholder
 	      var removed = splice.removed;
 	      var add = splice.add;
 	      var rlen = removed.length;
-	      // for track
-	      if( track && rlen && add ){
-	        var minar = Math.min(rlen, add);
-	        var tIndex = 0;
-	        while(tIndex < minar){
-	          if( keyOf(newList[index], index) !== keyOf( removed[0], index ) ){
-	            removeRange(index, 1, children)
-	            addRange(index, index+1, newList, rawNewValue)
-	          }
-	          removed.shift();
-	          add--;
-	          index++;
-	          tIndex++;
-	        }
-	        rlen = removed.length;
-	      }
 	      // update
 	      updateRange(m, index, newList, rawNewValue);
 
-	      removeRange( index ,rlen, children)
+	      removeRange.call(this, index ,rlen, children)
 
 	      addRange(index, index+add, newList, rawNewValue)
 
@@ -4080,19 +4029,48 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	    updateRange(0, mlen, newList, rawNewValue)
 	    if(nlen < olen){ //need add
-	      removeRange(nlen, olen-nlen, children);
+	      removeRange.call(this, nlen, olen-nlen, children);
 	    }else if(nlen > olen){
 	      addRange(olen, nlen, newList, rawNewValue);
 	    }
 	  }
 
-	  function update(newValue, oldValue, splices){
+
+
+	  // oldKeyMap: 复用原来的节点
+	  function updateTrack( newList, oldList, steps,  rawNewValue, oldKeyMap ){
+	    
+	    for(var i =0, slen = steps.length; i < slen ;i++){
+	      var step = steps[i];
+	      switch( step.mode){
+	        case 0 : //remove
+	          removeRange.call(this, step.index, step.len, group.children, oldKeyMap);
+	          break;
+	        case 1 : //insert
+	          addRange(step.index, step.index + step.len, newList, rawNewValue, oldKeyMap )
+	          break;
+	      }
+	    }     
+	    var children = group.children;
+	    for(var j=1, len = children.length; j < len; j++){
+	      var child = children[j];
+	      if( child ){
+	        child.data[variable] = newList[j-1];
+	        child.data[indexName] = j-1
+	      }
+	    }
+
+	    
+	  }
+
+	  function update(newValue, oldValue, steps, oldKeyMap, isSimple){
 
 	    var nType = _.typeOf( newValue );
 	    var oType = _.typeOf( oldValue );
 
 	    var newList = getListFromValue( newValue, nType );
 	    var oldList = getListFromValue( oldValue, oType );
+
 
 	    var rawNewValue;
 
@@ -4101,55 +4079,108 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var olen = oldList && oldList.length;
 
 	    // if previous list has , we need to remove the altnated section.
-	    if( !olen && nlen && group.get(1) ){
-	      var altGroup = children.pop();
-	      if(altGroup.destroy)  altGroup.destroy(true);
-	    }
 
 	    if( nType === 'object' ) rawNewValue = newValue;
 
-	    if(track === true){
-	      updateSimple( newList, oldList,  rawNewValue );
-	    }else{
-	      updateLD( newList, oldList, splices, rawNewValue );
+	    if(!olen && nlen){
+	      if(group.get(1)){
+	        var altGroup = children.pop();
+	        if(altGroup.destroy)  altGroup.destroy(true);
+	      } 
+	      return addRange(0, nlen, newList, rawNewValue )
 	    }
+	    // for mp
 
 	    // @ {#list} {#else}
-	    if( !nlen && alternate && alternate.length){
-	      var section = self.$compile(alternate, {
-	        extra: extra,
-	        record: true,
-	        outer: options.outer,
-	        namespace: namespace
-	      })
-	      children.push(section);
-	      if(placeholder.parentNode){
-	        animate.inject(combine.node(section), placeholder, 'after');
+	    if(!nlen ){
+	      if(olen){
+	        removeRange.call(this, 0, olen, group.children) 
 	      }
+	      if(alternate && alternate.length){
+	        var section = self.$compile(alternate, {
+	          extra: extra,
+	          record: true,
+	          outer: options.outer,
+	          namespace: namespace
+	        })
+	        children.push(section);
+	        // if(placeholder.parentNode){
+	        //   animate.inject(combine.node(section), placeholder, 'after');
+	        // }
+	      }
+	      return;
 	    }
+
+	    // for mp
+	    // TODO: 列表变化做全量更新，以此同步 eventHanlders，但性能会较差
+	    // 用 diff 性能会好，但改动会比较大
+	    if(nlen) {
+	      if(olen){
+	        removeRange.call(this, 0, olen, group.children) 
+	      }
+	      if(group.get(1)){
+	        var altGroup = children.pop();
+	        if(altGroup.destroy)  altGroup.destroy(true);
+	      } 
+	      return addRange(0, nlen, newList, rawNewValue )
+	    }
+
+	    if(track){
+	      
+	      if( track === true || (isSimple && !steps.length) ){ // track 可能走simple update
+	        updateSimple( newList, oldList,  rawNewValue );
+	      }else{
+	        if(oldKeyMap){
+	          for(var i in oldKeyMap){
+	            var index= oldKeyMap[i];
+	            if(children[index + 1]) oldKeyMap[i]= children[index + 1];
+	          }
+	        }
+	        updateTrack( newList, oldList , steps, rawNewValue, oldKeyMap);
+	      }
+	      
+	    }else{
+	      updateLD( newList, oldList, steps, rawNewValue );
+	    }
+
 	  }
 
-	  this.$watch(ast.sequence, update, {
-	    init: true,
-	    diff: track !== true ,
+	  this.$watch(ast.sequence, update, { 
+	    init: true, 
+	    keyOf: keyOf,
+	    diff: track!==true,
 	    deep: true
 	  });
+
 	  //@FIXIT, beacuse it is sync process, we can
 	  cursor = null;
 	  return group;
 	}
 
-
+	function getEventIdsFromGroup(node = {}) {
+	  var res = [];
+	  if (node.eventId) {
+	    res.push(node.eventId);
+	  }
+	  var children = node.children || node.group && node.group.children || [];
+	  if (children) {
+	    for(var i = 0; i < children.length; ++i) {
+	      res = res.concat(getEventIdsFromGroup(children[i]));
+	    }
+	  }
+	  return res;
+	}
 
 	// {#include } or {#inc template}
 	walkers.template = function(ast, options){
 	  var content = ast.content, compiled;
-	  var placeholder = document.createComment('inlcude');
+	  // var placeholder = document.createComment('inlcude');
 	  var compiled, namespace = options.namespace, extra = options.extra;
-	  var group = new Group([placeholder]);
+	  // var group = new Group([placeholder]);
+	  var group = new Group([{}]);
 	  var cursor = options.cursor;
 
-	  insertPlaceHolder(placeholder, cursor);
+	  // insertPlaceHolder(placeholder, cursor);
 
 	  if(content){
 	    var self = this;
@@ -4167,9 +4198,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	        namespace: namespace,
 	        cursor: cursor,
 	        extra: extra}) );
-	      if(placeholder.parentNode && !cursor) {
-	        compiled.$inject(placeholder, 'before')
-	      }
+	      // if(placeholder.parentNode && !cursor) {
+	      //   compiled.$inject(placeholder, 'before')
+	      // }
 	    }, OPTIONS.INIT);
 	    cursor = null;
 	  }
@@ -4209,12 +4240,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 
 	  var test, node;
-	  var placeholder = document.createComment("Regular if" + ii++);
+	  // for map
+	  // var placeholder = document.createComment("Regular if" + ii++);
 	  var group = new Group();
-	  group.push(placeholder);
+	  group.push({});
 	  var preValue = null, namespace= options.namespace;
 	  var cursor = options.cursor;
-	  insertPlaceHolder(placeholder, cursor)
+
+	  // for map
+	  // insertPlaceHolder(placeholder, cursor)
 
 	  var update = function (nvalue, old){
 	    var value = !!nvalue, compiledSection;
@@ -4241,14 +4275,19 @@ return /******/ (function(modules) { // webpackBootstrap
 	        compiledSection = self.$compile(ast.alternate, curOptions);
 	      }
 	    }
+
+	    // for map
 	    // placeholder.parentNode && placeholder.parentNode.insertBefore( node, placeholder );
 	    if(compiledSection){
 	      group.push(compiledSection );
-	      if(placeholder.parentNode && !cursor){
-	        animate.inject(combine.node(compiledSection), placeholder, 'before');
-	      }
+
+	      // for map
+	      // if(placeholder.parentNode && !cursor){
+	      //   animate.inject(combine.node(compiledSection), placeholder, 'before');
+	      // }
 	    }
 	    cursor = null;
+	    // this._updateMPData();
 	    // after first mount , we need clear this flat;
 	  }
 	  this.$watch(ast.test, update, OPTIONS.FORCE_INIT);
@@ -4257,29 +4296,29 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 
-	walkers._handleMountText = function(cursor, astText){
-	    var node, mountNode = cursor.node;
-	    // fix unused black in astText;
-	    var nodeText = dom.text(mountNode);
+	// walkers._handleMountText = function(cursor, astText){
+	//     var node, mountNode = cursor.node;
+	//     // fix unused black in astText;
+	//     var nodeText = dom.text(mountNode);
 
-	    if( nodeText === astText ){
-	      node = mountNode;
-	      cursor.next();
-	    }else{
-	      // maybe have some redundancy  blank
-	      var index = nodeText.indexOf(astText);
-	      if(~index){
-	        node = document.createTextNode(astText);
-	        dom.text( mountNode, nodeText.slice(index + astText.length) );
-	        dom.inject(node, mountNode, 'before');
-	      } else {
-	        // if( _.blankReg.test( astText ) ){ }
-	        throw Error( MSG[ERROR.UNMATCHED_AST]);
-	      }
-	    }
+	//     if( nodeText === astText ){
+	//       node = mountNode;
+	//       cursor.next();
+	//     }else{
+	//       // maybe have some redundancy  blank
+	//       var index = nodeText.indexOf(astText);
+	//       if(~index){
+	//         // node = document.createTextNode(astText);
+	//         // dom.text( mountNode, nodeText.slice(index + astText.length) );
+	//         // dom.inject(node, mountNode, 'before');
+	//       } else {
+	//         // if( _.blankReg.test( astText ) ){ }
+	//         throw Error( MSG[ERROR.UNMATCHED_AST]);
+	//       }
+	//     }
 
-	    return node;
-	}
+	//     return node;
+	// }
 
 
 	walkers.expression = function(ast, options){
@@ -4290,14 +4329,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	  if(mountNode){
 	    //@BUG: if server render &gt; in Expression will cause error
 	    var astText = _.toText( this.$get(ast) );
-	    node = walkers._handleMountText(cursor, astText);
+	    // node = walkers._handleMountText(cursor, astText);
 
 	  }else{
-	    node = document.createTextNode("");
+	    // node = document.createTextNode("");
 	  }
 
 	  this.$watch(ast, function(newval){
-	    dom.text(node, _.toText(newval));
+	    // dom.text(node, _.toText(newval));
+	    // this._updateMPData();
 	  }, OPTIONS.STABLE_INIT )
 	  return node;
 
@@ -4305,27 +4345,32 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 	walkers.text = function(ast, options){
-	  var cursor = options.cursor , node;
-	  var text = ast.text;
-	  var astText = text.indexOf('&') !== -1? _.convertEntity(text): text;
+	  // for mp
+	  return {
+	    type: 'text'
+	  };
 
-	  if(cursor && cursor.node) {
-	    var mountNode = cursor.node;
-	    // maybe regularjs parser have some difference with html builtin parser when process  empty text
-	    // @todo error report
-	    if(mountNode.nodeType !== 3 ){
+	  // var cursor = options.cursor , node;
+	  // var text = ast.text;
+	  // var astText = text.indexOf('&') !== -1? _.convertEntity(text): text;
 
-	      if( _.blankReg.test(astText) ) return {
-	        code:  ERROR.UNMATCHED_AST
-	      }
+	  // if(cursor && cursor.node) {
+	  //   var mountNode = cursor.node;
+	  //   // maybe regularjs parser have some difference with html builtin parser when process  empty text
+	  //   // @todo error report
+	  //   if(mountNode.nodeType !== 3 ){
 
-	    }else{
-	      node = walkers._handleMountText( cursor, astText )
-	    }
-	  }
+	  //     if( _.blankReg.test(astText) ) return {
+	  //       code:  ERROR.UNMATCHED_AST
+	  //     }
+
+	  //   }else{
+	  //     node = walkers._handleMountText( cursor, astText )
+	  //   }
+	  // }
 
 
-	  return node || document.createTextNode( astText );
+	  // return node || document.createTextNode( astText );
 	}
 
 
@@ -4360,10 +4405,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	  if(cursor ){
 	    // textCOntent with Empty text
 	    if(cursor.node && cursor.node.nodeType === 3){
-	      if(_.blankReg.test(dom.text(cursor.node) ) ) cursor.next();
-	      else if( !Component && tag !== 'r-component' ) {
-	        throw Error(MSG[ERROR.UNMATCHED_AST]);
-	      } 
+	      // if(_.blankReg.test(dom.text(cursor.node) ) ) cursor.next();
+	      // else if( !Component && tag !== 'r-component' ) {
+	      //   throw Error(MSG[ERROR.UNMATCHED_AST]);
+	      // } 
 	    }
 	  }
 	  
@@ -4377,14 +4422,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	  if(tag === 'svg') namespace = "svg";
 	  // @Deprecated: may be removed in next version, use {#inc } instead
 
-	  if( children && children.length ){
+	  if( children && children.length && !hasStopDirective( attrs ) ){
 
 	    var subMountNode = mountNode? mountNode.firstChild: null;
 	    group = this.$compile(children, {
 	      extra: extra ,
 	      outer: options.outer,
 	      namespace: namespace,
-	      cursor: nodeCursor(subMountNode, mountNode)
+	      cursor: nodeCursor( subMountNode, mountNode )
 	    });
 	  }
 
@@ -4393,21 +4438,29 @@ return /******/ (function(modules) { // webpackBootstrap
 	    element = mountNode
 	    cursor.next();
 	  }else{
-	    element = dom.create( tag, namespace, attrs);
+	    // element = dom.create( tag, namespace, attrs);
 	  }
 
-	  if(group && !_.isVoidTag( tag ) && !mountNode ){ // if not init with mount mode
-	    animate.inject( combine.node( group ) , element)
-	  }
+	  // if(group && !_.isVoidTag( tag ) && !mountNode ){ // if not init with mount mode
+	  //   animate.inject( combine.node( group ) , element)
+	  // }
 
 	  // fix tag ast, some infomation only avaliable at runtime (directive etc..)
 	  _.fixTagAST(ast, Constructor)
+	  
+	  var eventId = getEventId(ast, options);
+	  var rhtmlId = getRHtmlId(ast, options);
+	  if (ast.staticClass) {
+	      extra.staticClass = ast.staticClass
+	  }
 
-	  var destroies = walkAttributes.call(this, attrs, element, extra);
+	  var destroies = walkAttributes.call(this, attrs, element, extra, eventId, rhtmlId);
 
 	  return {
 	    type: "element",
 	    group: group,
+	    // for mp: 记录当前节点的 eventId，后面会挂载到 vm 上
+	    eventId: eventId,
 	    node: function(){
 	      return element;
 	    },
@@ -4416,7 +4469,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    },
 	    destroy: function(first){
 	      if( first ){
-	        animate.remove( element, group? group.destroy.bind( group ): _.noop );
+	        // animate.remove( element, group? group.destroy.bind( group ): _.noop );
 	      }else if(group) {
 	        group.destroy();
 	      }
@@ -4435,6 +4488,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	  }
 	}
+
+
 
 	walkers.component = function(ast, options){
 	  var attrs = ast.attrs,
@@ -4479,7 +4534,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 
 	    // title = {~ <h2>{name}</h2>}
-	    if(value.type === 'body'){
+	    if(value && value.type === 'body'){
 	      value = _.getCompileFn(value.body, this, {
 	        record: true,
 	        namespace: namespace,
@@ -4529,6 +4584,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    $parent: (isolate & 2)? null: this,
 	    $root: this.$root,
 	    $outer: options.outer,
+	    _extra: options.extra, // for mp: list index
+	    _localComponentIndex: _.getLocalComponentIndex(ast, options),  // for mp: localComponentIndex in a rgl
 	    _body: {
 	      ctx: this,
 	      ast: ast.children
@@ -4539,7 +4596,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	    cursor: cursor,
 	    extra: options.extra
 	  }
-
 
 	  var component = new Component(definition, options), reflink;
 
@@ -4560,6 +4616,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      if( !(isolate & 2) )
 	        this.$watch(value, (function(name, val){
 	          this.data[name] = val;
+	          // this._updateMPData();  // for mp
 	        }).bind(component, name), OPTIONS.SYNC)
 	      if( value.set && !(isolate & 1 ) )
 	        // sync the data. it force the component don't trigger attr.name's first dirty echeck
@@ -4583,28 +4640,51 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var refName = ref.get? ref.get(this): ref;
 	        self.$refs[refName] = ncomponent;
 	      }
+
+	      // this._updateMPData();  // for mp
 	    }, OPTIONS.SYNC)
 	    return group;
 	  }
+	  // component._updateMPData();
 	  return component;
 	}
 
-	function walkAttributes(attrs, element, extra){
+	function walkAttributes(attrs, element, extra, eventId, rhtmlId) {
 	  var bindings = []
 	  for(var i = 0, len = attrs.length; i < len; i++){
-	    var binding = this._walk(attrs[i], {element: element, fromElement: true, attrs: attrs, extra: extra})
+	    var binding = this._walk(attrs[i], {
+	      element: element,
+	      fromElement: true,
+	      attrs: attrs,
+	      extra: extra,
+	      eventId: eventId,
+	      rhtmlId: rhtmlId
+	    });
 	    if(binding) bindings.push(binding);
 	  }
 	  return bindings;
 	}
 
+	function getEventId(ast, options) {
+	  if (ast.eventId) {
+	    return ast.eventId.replace(/(?:{{\s?)(\w*)(?:\s?}})/g, function(str, key) {
+	      return options.extra[key];
+	    });
+	  }
+	  return (options.eventId + '') || '';
+	}
 
-	walkers.attribute = function(ast ,options){
+	function getRHtmlId(ast, options) {
+	  return (ast.rhtmlId + '') || '0';
+	}
 
+	walkers.attribute = function(ast, options){
 	  var attr = ast;
 	  var Component = this.constructor;
 	  var name = attr.name;
 	  var directive = Component.directive(name);
+	  var eventId = options.eventId;
+	  var rhtmlId = options.rhtmlId;
 
 	  shared.prepareAttr(ast, directive);
 
@@ -4614,6 +4694,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	  var self = this;
 
 
+	  if (attr.holders && !/^on\-/.test(attr.name)) {
+	    attr.holders.forEach((holder) => {
+	      var holderValue = this._touchExpr(holder);
+	      if (holder.constant) {
+	        holderValue.get(this);
+	      } else if(holder.type === 'expression') {
+	        this.$watch(holderValue, function() {}, OPTIONS.STABLE_INIT);
+	      }
+	    });
+	  }
+
 
 	  value = this._touchExpr(value);
 
@@ -4622,7 +4713,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	  if(directive && directive.link){
 	    var extra = {
 	      attrs: options.attrs,
-	      param: _.getParamObj(this, attr.param)
+	      param: _.getParamObj(this, attr.param),
+	      eventId: eventId,
+	      rhtmlId: rhtmlId,
+	      extra: options.extra
 	    }
 	    var binding = directive.link.call(self, element, value, name, extra);
 	    // if update has been passed in , we will  automately watch value for user
@@ -4636,59 +4730,60 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	    }
 	    if(typeof binding === 'function') binding = {destroy: binding};
+	    
 	    return binding;
-	  } else{
-	    if(value.type === 'expression' ){
+	  } else {
+	    if(value.type === 'expression' && value.get){
 	      this.$watch(value, function(nvalue, old){
-	        dom.attr(element, name, nvalue);
+	        // dom.attr(element, name, nvalue);
 	      }, OPTIONS.STABLE_INIT);
 	    }else{
 	      if(_.isBooleanAttr(name)){
-	        dom.attr(element, name, true);
+	        // dom.attr(element, name, true);
 	      }else{
-	        dom.attr(element, name, value);
+	        // dom.attr(element, name, value);
 	      }
 	    }
 	    if(!options.fromElement){
 	      return {
 	        destroy: function(){
-	          dom.attr(element, name, null);
+	          // dom.attr(element, name, null);
 	        }
 	      }
 	    }
 	  }
-
 	}
 
-	function insertPlaceHolder(placeholder, cursor){
-	  if(cursor){
-	    if(cursor.node) dom.inject( placeholder , cursor.node,'before')
-	    else if(cursor.prev) {
-	      dom.inject( placeholder , cursor.prev,'after')
-	      cursor.prev = placeholder;
-	    }
+	// function insertPlaceHolder(placeholder, cursor){
+	//   if(cursor){
+	//     if(cursor.node) dom.inject( placeholder , cursor.node,'before')
+	//     else if(cursor.prev) {
+	//       dom.inject( placeholder , cursor.prev,'after')
+	//       cursor.prev = placeholder;
+	//     }else if(cursor.parent){
+	//       dom.inject( placeholder , cursor.parent)
+	//       cursor.prev = placeholder
+	//     }
+	//   }
+	// }
+
+
+	// @FIXIT
+	function hasStopDirective(attrs){
+	  for( var i = attrs.length; i--; ){
+	    var attr = attrs[i];
+	    if(attr.name === 'r-html') return true;
 	  }
 	}
 
 
-/***/ },
+/***/ }),
 /* 18 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 	var _ = __webpack_require__(3);
+	var diffTrack = __webpack_require__(19);
 
-	function simpleDiff(now, old){
-	  var nlen = now.length;
-	  var olen = old.length;
-	  if(nlen !== olen){
-	    return true;
-	  }
-	  for(var i = 0; i < nlen ; i++){
-	    if(now[i] !== old[i]) return  true;
-	  }
-	  return false
-
-	}
 
 	function equals(a,b){
 	  return a === b;
@@ -4724,7 +4819,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	// arr2 - new array
 	// arr1 - old array
 	function diffArray(arr2, arr1, diff, diffFn) {
-	  if(!diff) return simpleDiff(arr2, arr1);
+	  if(!diff) return _.simpleDiff(arr2, arr1);
 	  var matrix = ld(arr1, arr2, diffFn)
 	  var n = arr1.length;
 	  var i = n;
@@ -4821,8 +4916,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	// diffObject
 	// ----
 	// test if obj1 deepEqual obj2
-	function diffObject( now, last, diff ){
-
+	function diffObject( now, last, diff, keyOf, lastTrackInfo ){
 
 	  if(!diff){
 
@@ -4836,8 +4930,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	  }else{
 
-	    var nKeys = _.keys(now);
-	    var lKeys = _.keys(last);
+	    var nValues = _.values( now );
+	    var lValues = _.values( last );
 
 	    /**
 	     * [description]
@@ -4845,31 +4939,267 @@ return /******/ (function(modules) { // webpackBootstrap
 	     * @param  {[type]} b){                   return now[b] [description]
 	     * @return {[type]}      [description]
 	     */
-	    return diffArray(nKeys, lKeys, diff, function(a, b){
-	      return now[b] === last[a];
-	    });
+	    if(typeof keyOf === 'function'){
+	      return diffTrack( nValues, lValues, keyOf, lastTrackInfo);
+	    }
+	    return diffArray( nValues, lValues, diff);
 
 	  }
 
 	  return false;
-
-
 	}
+
+
+
 
 	module.exports = {
 	  diffArray: diffArray,
-	  diffObject: diffObject
+	  diffObject: diffObject,
+	  diffTrack: diffTrack
 	}
 
-/***/ },
+/***/ }),
 /* 19 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
+
+	
+	var _ = __webpack_require__(3);
+
+	var dconst = __webpack_require__(20).DIFF
+	var ADD_ALL = dconst.ADD_ALL
+	var REMOVE_ALL = dconst.REMOVE_ALL
+
+
+	// tracked 与 ls不同， 我们要确保所有被tracked的数据对应的节点是存在的，不能有任何损失
+	function diffTrack( newArr, oldArr, keyOf  ){
+
+	  var olen = oldArr.length;
+	  var nlen = newArr.length;
+
+
+	  var steps = [];
+	  var ret = {
+	    isTrack: true,
+	    steps:steps
+	  }
+
+	  // 确保当存在无法被keyOf的item时，不会死循环
+	  // true 说明 不同
+	  // false 说明 引用相同
+	  if( !_.simpleDiff(newArr, oldArr) ) return ret;
+
+	  ret.dirty = true;
+
+	  if( olen && !nlen ) { // 直接删除所有
+	    createStep( steps, 0,0,olen );
+	    return ret
+	  }
+	  if(nlen && !olen){ //直接添加所有
+	    createStep(steps, 1,0,nlen);
+	    return ret
+	  }
+
+	  // 模拟被真实操作的groups获得真实的下标
+	  var substitute = _.slice( oldArr );
+	  var newTrack = getTrackInfo( newArr, keyOf );
+	  var oldTrack = getTrackInfo( oldArr, keyOf );
+
+	  var newTrackMap = newTrack.trackMap;
+	  var oldTrackMap = oldTrack.trackMap;
+
+	  var oldRemoved = {};
+
+	  // 使用替身数组完成对应操作，模拟DOM操作
+
+	  // i 老数据下标， 
+	  // j 新数组下标
+	  var untrackIndex = 0, 
+	    oldUntracked = oldTrack.untrack, 
+	    oldUntrackedLength = oldUntracked.length;
+
+	  // @FIXIT, 当数组对应的key发生改变，而缓存key其实是一种错误开销
+	  // 暂时将所有untraked的东西都进行删除，实际这是用户的一种错误使用, 可以引发性能开销
+	  if(oldUntrackedLength){
+	    while(oldUntrackedLength--){
+	      var oidx = oldUntracked[oldUntrackedLength];
+	      remove( substitute, steps, oldUntracked[ oldUntrackedLength ] );
+	    }
+	  }
+
+	  var len = substitute.length;
+	  for(var i =0; i<len ;i++){
+	    var oldItem = substitute[i];
+	    var oldKey = keyOf( oldItem);
+
+	    // 将所有其它不存在与
+	    if( !newTrackMap.hasOwnProperty(oldKey) ){
+	      oldRemoved[ oldKey ] = oldTrackMap[ oldKey ]
+	      remove( substitute, steps, i );
+	      i--;
+	      len--;
+	    }
+	    
+	  }
+
+
+	  var jlen = newArr.length;
+	  // i old index
+	  // j new index
+	  var i = 0, j = 0;
+
+	  while( j < jlen  ){
+
+	    //@TODO 大量重复key的计算
+	    if(i >= substitute.length){
+	      insert( substitute, steps, i, 1 );
+	      i++;
+	      j++;
+	      continue
+	    }
+	    var oldKey = keyOf( substitute[i] );
+
+
+	    var item = newArr[ j ];
+	    var key = keyOf( item );
+
+	    if( key === oldKey ){
+	      i++; j++;
+	      continue;
+	    }else{
+	      //先插入一个节点
+	      insert( substitute, steps, i, 1 );
+	      i++;
+	      j++;
+	      continue;
+	    }
+
+	  }
+	  // 说明还未完全处理完毕，因为j条件短了
+
+	  var slen = substitute.length;
+	  if( j < slen ){
+	    createStep(steps, 0, j, slen - j )
+	    for(var k = j; k < slen; k++ ){
+	      var oldKey = keyOf( substitute[k]);
+	      oldRemoved[oldKey] = oldTrackMap[oldKey];
+	    }
+	  }
+	  // 这些将在apply到前台时，被复用
+	  ret.oldKeyMap = oldRemoved;
+
+	  return ret;
+	}
+
+
+	function createStep(steps ,mode, index, len, oldIndex){
+	  len = len || 1;
+	  var last = steps[steps.length-1];
+	  if(last && last.mode === mode  ){
+	    if( (mode === 0 && last.index === index) ||
+	        (mode === 1 && last.index + last.len === index)
+	      ){
+	      last.len++;
+	      return steps;
+	    }
+	    
+	  }
+	  steps.push( {
+	    mode: mode,
+	    index:index,
+	    len: len
+	  } );
+	  return steps;
+
+	}
+
+	function insert( substitute, steps ,index, len){
+
+	  createStep(steps, 1, index, len, steps)
+	  substitute.splice(index, 0, null)
+	}
+
+	function remove( substitute, steps ,index, len ){
+	  createStep(steps, 0, index, len)
+	  substitute.splice(index, 1);
+	}
+
+	// convert <Array>list to 
+	// <Object>{ trackMap: <Map> trackMap, unmark: <Array> indextrackPair}
+
+	function getTrackInfo( list, keyOf ){
+
+	  var untrack = [], trackMap = {};
+
+	  for(var i = 0, len = list.length; i < len ; i++){
+
+	    var item = list[i];
+	    var trackKey = keyOf(list[i]);
+
+	    // can be stringify
+	    if( !trackMap.hasOwnProperty(trackKey) ){
+
+	      trackMap[ trackKey ] = i
+	    }else{
+
+	      untrack.push( i )
+	    }
+	  }
+
+	  return {
+	    untrack: untrack,
+	    trackMap: trackMap
+	  }
+	}
+
+	function isTrackable( key ){
+	  var type = typeof key;
+	  return type !== 'object' && type !== 'undefined';
+	}
+
+
+	module.exports = diffTrack
+
+/***/ }),
+/* 20 */
+/***/ (function(module, exports) {
+
+	module.exports = {
+	  'COMPONENT_TYPE': 1,
+	  'ELEMENT_TYPE': 2,
+	  'ERROR': {
+	    'UNMATCHED_AST': 101
+	  },
+	  "MSG": {
+	    101: "Unmatched ast and mountNode, report issue at https://github.com/regularjs/regular/issues"
+	  },
+	  'NAMESPACE': {
+	    html: "http://www.w3.org/1999/xhtml",
+	    svg: "http://www.w3.org/2000/svg"
+	  },
+	  'OPTIONS': {
+	    'STABLE_INIT': { stable: !0, init: !0 },
+	    'FORCE_INIT': { force: !0, init: !0 },
+	    'STABLE': {stable: !0},
+	    'INIT': { init: !0 },
+	    'SYNC': { sync: !0 },
+	    'FORCE': { force: !0 }
+	  },
+	  'DIFF': {
+	    'REMOVE_ALL': 1,
+	    'ADD_ALL': 0
+	  }
+	}
+
+
+/***/ }),
+/* 21 */
+/***/ (function(module, exports) {
 
 	// some nested  operation in ast 
 	// --------------------------------
 
-	var dom = __webpack_require__(15);
-	var animate = __webpack_require__(20);
+	// var dom = require("../dom");
+	// var animate = require("./animate");
 
 	var combine = module.exports = {
 
@@ -4904,24 +5234,30 @@ return /******/ (function(modules) { // webpackBootstrap
 	  inject: function(node, pos ){
 	    var group = this;
 	    var fragment = combine.node(group.group || group);
-	    if(node === false) {
-	      animate.remove(fragment)
-	      return group;
-	    }else{
-	      if(!fragment) return group;
-	      if(typeof node === 'string') node = dom.find(node);
-	      if(!node) throw Error('injected node is not found');
-	      // use animate to animate firstchildren
-	      animate.inject(fragment, node, pos);
-	    }
-	    // if it is a component
+	    // mp return
 	    if(group.$emit) {
-	      var preParent = group.parentNode;
-	      var newParent = (pos ==='after' || pos === 'before')? node.parentNode : node;
-	      group.parentNode = newParent;
-	      group.$emit("$inject", node, pos, preParent);
+	      group.$emit("$inject");
 	    }
 	    return group;
+
+	    // if(node === false) {
+	    //   animate.remove(fragment)
+	    //   return group;
+	    // }else{
+	    //   if(!fragment) return group;
+	    //   if(typeof node === 'string') node = dom.find(node);
+	    //   if(!node) throw Error('injected node is not found');
+	    //   // use animate to animate firstchildren
+	    //   animate.inject(fragment, node, pos);
+	    // }
+	    // // if it is a component
+	    // if(group.$emit) {
+	    //   var preParent = group.parentNode;
+	    //   var newParent = (pos ==='after' || pos === 'before')? node.parentNode : node;
+	    //   group.parentNode = newParent;
+	    //   group.$emit("$inject", node, pos, preParent);
+	    // }
+	    // return group;
 	  },
 
 	  // get the last dom in object(for insertion operation)
@@ -4938,7 +5274,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	  destroy: function(item, first){
 	    if(!item) return;
-	    if( typeof item.nodeType === "number"  ) return first && dom.remove(item)
+	    // if( typeof item.nodeType === "number"  ) return first && dom.remove(item)
 	    if( typeof item.destroy === "function" ) return item.destroy(first);
 
 	    if( Array.isArray(item)){
@@ -4952,289 +5288,31 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 	// @TODO: need move to dom.js
-	dom.element = function( component, all ){
-	  if(!component) return !all? null: [];
-	  var nodes = combine.node( component );
-	  if( nodes.nodeType === 1 ) return all? [nodes]: nodes;
-	  var elements = [];
-	  for(var i = 0; i<nodes.length ;i++){
-	    var node = nodes[i];
-	    if( node && node.nodeType === 1){
-	      if(!all) return node;
-	      elements.push(node);
-	    } 
-	  }
-	  return !all? elements[0]: elements;
-	}
+	// dom.element = function( component, all ){
+	//   if(!component) return !all? null: [];
+	//   var nodes = combine.node( component );
+	//   if( nodes.nodeType === 1 ) return all? [nodes]: nodes;
+	//   var elements = [];
+	//   for(var i = 0; i<nodes.length ;i++){
+	//     var node = nodes[i];
+	//     if( node && node.nodeType === 1){
+	//       if(!all) return node;
+	//       elements.push(node);
+	//     } 
+	//   }
+	//   return !all? elements[0]: elements;
+	// }
 
 
 
 
 
-/***/ },
-/* 20 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var _ = __webpack_require__(3);
-	var dom  = __webpack_require__(15);
-	var animate = {};
-	var env = __webpack_require__(1);
-
-
-	if(typeof window !== 'undefined'){
-	var 
-	  transitionEnd = 'transitionend', 
-	  animationEnd = 'animationend', 
-	  transitionProperty = 'transition', 
-	  animationProperty = 'animation';
-
-	if(!('ontransitionend' in window)){
-	  if('onwebkittransitionend' in window) {
-	    
-	    // Chrome/Saf (+ Mobile Saf)/Android
-	    transitionEnd += ' webkitTransitionEnd';
-	    transitionProperty = 'webkitTransition'
-	  } else if('onotransitionend' in dom.tNode || navigator.appName === 'Opera') {
-
-	    // Opera
-	    transitionEnd += ' oTransitionEnd';
-	    transitionProperty = 'oTransition';
-	  }
-	}
-	if(!('onanimationend' in window)){
-	  if ('onwebkitanimationend' in window){
-	    // Chrome/Saf (+ Mobile Saf)/Android
-	    animationEnd += ' webkitAnimationEnd';
-	    animationProperty = 'webkitAnimation';
-
-	  }else if ('onoanimationend' in dom.tNode){
-	    // Opera
-	    animationEnd += ' oAnimationEnd';
-	    animationProperty = 'oAnimation';
-	  }
-	}
-	}
-
-	/**
-	 * inject node with animation
-	 * @param  {[type]} node      [description]
-	 * @param  {[type]} refer     [description]
-	 * @param  {[type]} direction [description]
-	 * @return {[type]}           [description]
-	 */
-	animate.inject = function( node, refer ,direction, callback ){
-	  callback = callback || _.noop;
-	  if( Array.isArray(node) ){
-	    var fragment = dom.fragment();
-	    var count=0;
-
-	    for(var i = 0,len = node.length;i < len; i++ ){
-	      fragment.appendChild(node[i]); 
-	    }
-	    dom.inject(fragment, refer, direction);
-
-	    // if all nodes is done, we call the callback
-	    var enterCallback = function (){
-	      count++;
-	      if( count === len ) callback();
-	    }
-	    if(len === count) callback();
-	    for( i = 0; i < len; i++ ){
-	      if(node[i].onenter){
-	        node[i].onenter(enterCallback);
-	      }else{
-	        enterCallback();
-	      }
-	    }
-	  }else{
-	    if(!node) return;
-	    dom.inject( node, refer, direction );
-	    if(node.onenter){
-	      node.onenter(callback)
-	    }else{
-	      callback();
-	    }
-	  }
-	}
-
-	/**
-	 * remove node with animation
-	 * @param  {[type]}   node     [description]
-	 * @param  {Function} callback [description]
-	 * @return {[type]}            [description]
-	 */
-
-	animate.remove = function(node, callback){
-	  if(!node) return;
-	  var count = 0;
-	  function loop(){
-	    count++;
-	    if(count === len) callback && callback()
-	  }
-	  if( Array.isArray(node) ){
-	    for(var i = 0, len = node.length; i < len ; i++){
-	      animate.remove(node[i], loop)
-	    }
-	    return;
-	  }
-	  if(typeof node.onleave ==='function'){
-	    node.onleave(function(){
-	      removeDone(node, callback)
-	    })
-	  }else{
-	    removeDone(node, callback)
-	  }
-	}
-
-	function removeDone(node, callback){
-	    dom.remove(node);
-	    callback && callback();
-	}
-
-
-
-	animate.startClassAnimate = function ( node, className,  callback, mode ){
-	  var activeClassName, timeout, tid, onceAnim;
-	  if( (!animationEnd && !transitionEnd) || env.isRunning ){
-	    return callback();
-	  }
-
-	  if(mode !== 4){
-	    onceAnim = _.once(function onAnimateEnd(){
-	      if(tid) clearTimeout(tid);
-
-	      if(mode === 2) {
-	        dom.delClass(node, activeClassName);
-	      }
-	      if(mode !== 3){ // mode hold the class
-	        dom.delClass(node, className);
-	      }
-	      dom.off(node, animationEnd, onceAnim)
-	      dom.off(node, transitionEnd, onceAnim)
-
-	      callback();
-
-	    });
-	  }else{
-	    onceAnim = _.once(function onAnimateEnd(){
-	      if(tid) clearTimeout(tid);
-	      callback();
-	    });
-	  }
-	  if(mode === 2){ // auto removed
-	    dom.addClass( node, className );
-
-	    activeClassName = _.map(className.split(/\s+/), function(name){
-	       return name + '-active';
-	    }).join(" ");
-
-	    dom.nextReflow(function(){
-	      dom.addClass( node, activeClassName );
-	      timeout = getMaxTimeout( node );
-	      tid = setTimeout( onceAnim, timeout );
-	    });
-
-	  }else if(mode===4){
-	    dom.nextReflow(function(){
-	      dom.delClass( node, className );
-	      timeout = getMaxTimeout( node );
-	      tid = setTimeout( onceAnim, timeout );
-	    });
-
-	  }else{
-	    dom.nextReflow(function(){
-	      dom.addClass( node, className );
-	      timeout = getMaxTimeout( node );
-	      tid = setTimeout( onceAnim, timeout );
-	    });
-	  }
-
-
-
-	  dom.on( node, animationEnd, onceAnim )
-	  dom.on( node, transitionEnd, onceAnim )
-	  return onceAnim;
-	}
-
-
-	animate.startStyleAnimate = function(node, styles, callback){
-	  var timeout, onceAnim, tid;
-
-	  dom.nextReflow(function(){
-	    dom.css( node, styles );
-	    timeout = getMaxTimeout( node );
-	    tid = setTimeout( onceAnim, timeout );
-	  });
-
-
-	  onceAnim = _.once(function onAnimateEnd(){
-	    if(tid) clearTimeout(tid);
-
-	    dom.off(node, animationEnd, onceAnim)
-	    dom.off(node, transitionEnd, onceAnim)
-
-	    callback();
-
-	  });
-
-	  dom.on( node, animationEnd, onceAnim )
-	  dom.on( node, transitionEnd, onceAnim )
-
-	  return onceAnim;
-	}
-
-
-	/**
-	 * get maxtimeout
-	 * @param  {Node} node 
-	 * @return {[type]}   [description]
-	 */
-	function getMaxTimeout(node){
-	  var timeout = 0,
-	    tDuration = 0,
-	    tDelay = 0,
-	    aDuration = 0,
-	    aDelay = 0,
-	    ratio = 5 / 3,
-	    styles ;
-
-	  if(window.getComputedStyle){
-
-	    styles = window.getComputedStyle(node),
-	    tDuration = getMaxTime( styles[transitionProperty + 'Duration']) || tDuration;
-	    tDelay = getMaxTime( styles[transitionProperty + 'Delay']) || tDelay;
-	    aDuration = getMaxTime( styles[animationProperty + 'Duration']) || aDuration;
-	    aDelay = getMaxTime( styles[animationProperty + 'Delay']) || aDelay;
-	    timeout = Math.max( tDuration+tDelay, aDuration + aDelay );
-
-	  }
-	  return timeout * 1000 * ratio;
-	}
-
-	function getMaxTime(str){
-
-	  var maxTimeout = 0, time;
-
-	  if(!str) return 0;
-
-	  str.split(",").forEach(function(str){
-
-	    time = parseFloat(str);
-	    if( time > maxTimeout ) maxTimeout = time;
-
-	  });
-
-	  return maxTimeout;
-	}
-
-	module.exports = animate;
-
-/***/ },
-/* 21 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 22 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	var _ = __webpack_require__(3);
-	var combine = __webpack_require__(19)
+	var combine = __webpack_require__(21)
 
 	function Group(list){
 	  this.children = list || [];
@@ -5263,9 +5341,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 
-/***/ },
-/* 22 */
-/***/ function(module, exports) {
+/***/ }),
+/* 23 */
+/***/ (function(module, exports) {
 
 	function NodeCursor(node, parentNode){
 	  this.node = node;
@@ -5281,12 +5359,3824 @@ return /******/ (function(modules) { // webpackBootstrap
 	  return this;
 	}
 
-	module.exports = function(n){ return new NodeCursor(n)}
+	module.exports = function(n, p){ return new NodeCursor(n, p)}
 
 
-/***/ },
-/* 23 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 24 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	var page = __webpack_require__(25);
+	var app = __webpack_require__(42);
+	var dataSync = __webpack_require__(34);
+	var events = __webpack_require__(26);
+	var wxParse = __webpack_require__(37);
+
+	module.exports = {
+	  initMP($vm, ...args) {
+	    var mpType = $vm.mpType || 'page';
+	    if (mpType === 'app') {
+	      return app.init($vm, ...args);
+	    } else {
+	      return page.init($vm, ...args);
+	    }
+	  },
+	  updateData: dataSync.updateData,
+	  initDataToMP: dataSync.initDataToMP,
+	  proxyEvent: events.proxyEvent,
+	  addEventHandler: events.addEventHandler,
+	  install(Regular) {
+	    var proto = Regular.prototype;
+	    proto._addMPEventHandler = events.addEventHandler;
+	    proto._removeMPEventHandler = events.removeEventHandler;
+
+	    proto._updateMPData = dataSync.updateData;
+	    proto._updateMPHolders = dataSync.updateHolders;
+
+	    proto._initWxParse = wxParse.init;
+	    return Regular;
+	  }
+	}
+
+/***/ }),
+/* 25 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	var page = {};
+	var events = __webpack_require__(26);
+	var callHook = __webpack_require__(33);
+	var dataSync = __webpack_require__(34);
+	var wxParse = __webpack_require__(37);
+	var VM = __webpack_require__(27);
+
+	page.init = function init(vm, opt) {
+	  Page({
+	    // 生命周期函数--监听页面加载
+	    data: {
+	      $root: {}
+	    },
+	    onLoad(options) {
+	      var rootVM = this.rootVM = VM.initRootVM(this, opt);
+
+	      wxParse.install(rootVM);
+
+	      callHook(rootVM,'onLoad', options)
+	    },
+	    // 生命周期函数--监听页面初次渲染完成
+	    onReady(options) {
+	      var rootVM = this.rootVM;
+	      var mp = rootVM.$mp;
+
+	      mp.status = 'ready';
+	      callHook(rootVM,'onReady', options)
+	      dataSync.initDataToMP(rootVM);
+	    },
+	    // 生命周期函数--监听页面显示
+	    onShow(options) {
+	      var rootVM = this.rootVM;
+	      var mp = rootVM.$mp;
+
+	      mp.status = 'show';
+	      callHook(rootVM,'onShow', options)
+	    },
+	    // 生命周期函数--监听页面隐藏
+	    onHide(options) {
+	      var rootVM = this.rootVM;
+	      var mp = rootVM.$mp;
+
+	      mp.status = 'hide';
+	      callHook(rootVM,'onHide', options)
+	    },
+	    // 生命周期函数--监听页面卸载
+	    onUnload(options) {
+	      var rootVM = this.rootVM;
+	      var mp = rootVM.$mp;
+
+	      mp.status = 'unload';
+	      callHook(rootVM,'onUnload', options)
+	    },
+	    // 页面相关事件处理函数--监听用户下拉动作
+	    onPullDownRefresh(options) {
+	      var rootVM = this.rootVM;
+
+	      callHook(rootVM,'onPullDownRefresh', options)
+	    },
+	    // 页面上拉触底事件的处理函数
+	    onReachBottom(options) {
+	      var rootVM = this.rootVM;
+
+	      callHook(rootVM,'onReachBottom', options)
+	    },
+	    // 用户点击右上角转发
+	    onShareAppMessage(options) {
+	      var rootVM = this.rootVM;
+
+	      return callHook(rootVM,'onShareAppMessage', options);
+	    },
+	    // 页面滚动触发事件的处理函数
+	    onPageScroll(options) {
+	      var rootVM = this.rootVM;
+
+	      callHook(rootVM,'onPageScroll', options)
+	    },
+	    // 当前是 tab 页时，点击 tab 时触发
+	    onTabItemTap(options) {
+	      var rootVM = this.rootVM;
+
+	      callHook(rootVM,'onTabItemTap', options)
+	    },
+	    proxyEvent(e) {
+	      var rootVM = this.rootVM;
+
+	      events.proxyEvent(rootVM, e);
+	    }
+	  });
+	}
+
+	module.exports = page;
+
+/***/ }),
+/* 26 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	var VM = __webpack_require__(27);
+
+	function addEventHandler(eventId, type, handler) {
+	  if (!this._eventHandlers) {
+	    this._eventHandlers = {}
+	  }
+	  if (!this._eventHandlers[eventId]) {
+	    this._eventHandlers[eventId] = {}
+	  }
+	  this._eventHandlers[eventId][type] = handler;
+	  return this;
+	}
+
+	function removeEventHandler(eventId, type) {
+	  var eventHanlders = this._eventHandlers;
+	  if (eventHanlders && eventHanlders[eventId]) {
+	    if (!type) {
+	      delete eventHanlders[eventId];
+	    } else if(eventHanlders[eventId][type]) {
+	      delete eventHanlders[eventId][type];
+	    }
+	  }
+	}
+
+	function proxyEvent(rootVM, e) {
+	  var target = e.currentTarget || e.target || {};
+	  var dataSet = target.dataset || {};
+	  var eventId = dataSet.eventId;
+	  var compId = dataSet.compId;
+
+	  var vm = VM.getVm(rootVM, compId);
+	  var type = e.type;
+
+	  if (!vm) {
+	    return;
+	  }
+
+	  var eventHandlers = vm._eventHandlers;
+
+	  if (eventHandlers) {
+	    var handlerMap = eventHandlers[eventId];
+	    var value;
+	    if (type === 'tap') {
+	      value = handlerMap['tap'] || handlerMap['click'];
+	    } else {
+	      value = handlerMap[EVENT_MAP[type]];
+	    }
+
+	    if (type === 'input' && handlerMap['r-model']) {
+	      handlerMap['r-model'].call(vm, e);
+	    }
+
+	    if (value) {
+	      vm.data.$event = e;
+
+	      value.get(vm);
+
+	      vm.data.$event = undefined;
+	      vm.$update();
+	    }
+	  }
+
+	}
+
+	const EVENT_MAP = {
+	  tap: 'click',
+	  touchstart: 'touchstart',
+	  touchmove: 'touchmove',
+	  touchcancel: 'touchcancel',
+	  touchend: 'touchend',
+	  longtap: 'longtap',
+	  input: 'input',
+	  change: 'change',
+	  submit: 'submit',
+	  blur: 'blur',
+	  focus: 'focus',
+	  reset: 'reset',
+	  confirm: 'confirm',
+	  columnchange: 'columnchange',
+	  linechange: 'linechange',
+	  error: 'error',
+	  scrolltoupper: 'scrolltoupper',
+	  scrolltolower: 'scrolltolower',
+	  scroll: 'scroll',
+	  load: 'load'
+	};
+
+	module.exports = {
+	  proxyEvent,
+	  addEventHandler,
+	  removeEventHandler,
+	  EVENT_MAP
+	}
+
+/***/ }),
+/* 27 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	const Buffer = __webpack_require__(28);
+
+	function initRootVM(page, opt) {
+	  var _opt = Object.assign({}, opt.options, {
+	    page: this
+	  });
+
+	  var rootVM = new opt.Component(opt.definition, _opt);
+
+	  rootVM.$mp = {
+	    page: page,
+	    status: 'load',
+	    buffer: new Buffer()
+	  };
+
+	  return rootVM;
+	}
+
+	function getLocalComponentIndex(vm = {}) {
+	  return vm._localComponentIndex || '0';
+	}
+
+	function getParentKey(vm) {
+	  var res = [];
+	  var cursor = vm;
+	  cursor = vm.$parent;
+	  while(cursor) {
+	    res.unshift(getLocalComponentIndex(cursor)); 
+	    cursor = cursor.$parent;
+	  }
+	  return res;
+	}
+
+	function extractData(obj, fn) {
+	  return Object.keys(obj)
+	    .filter(key => !!~['__holders', '__wxparsed'].indexOf(key))
+	    .reduce(function(res, key) {
+	      var v = obj[key];
+	      res[key] = typeof fn === 'function' ? fn(v) : v;
+	      return res;
+	    }, {})
+	}
+
+	function getData(vm) {
+	  return Object.assign(
+	    {},
+	    extractData(vm)
+	    // extractData(vm.data),
+	    // extractData(vm.computed, function(v) {return v.get(vm)})
+	  )
+	}
+
+
+	function getVm(rootVM, $k = '') {
+	  var path = $k.split(',').slice(1);
+	  var i = 0;
+	  var cursor = rootVM;
+	  while(cursor && cursor._children && path[i] !== undefined) {
+	    cursor = getVmByLocalComponentIndex(cursor._children, path[i]);
+	    i++;
+	  }
+	  return cursor;
+	}
+
+	function getMP(vm) {
+	  if (!vm || !vm.$root || !vm.$root.$mp) {
+	    return;
+	  }
+
+	  return vm.$root.$mp;
+	}
+
+	function getBuffer(vm) {
+	  if (!vm || !vm.$root || !vm.$root.$mp || !vm.$root.$mp.buffer) {
+	    return;
+	  }
+
+	  return vm.$root.$mp.buffer;
+	}
+
+	function getPage(vm) {
+	  if (!vm || !vm.$root || !vm.$root.$mp) {
+	    return;
+	  }
+
+	  return vm.$root.$mp.page;
+	}
+
+	function getVmByLocalComponentIndex(vms, id) {
+	  for(var i = 0;i < vms.length; ++i) {
+	    if (vms[i]._localComponentIndex === id) {
+	      return vms[i];
+	    }
+	  }
+	}
+
+	module.exports = {
+	  getLocalComponentIndex,
+	  getParentKey,
+	  getData,
+	  getVm,
+	  getPage,
+	  getMP,
+	  getBuffer,
+	  getVmByLocalComponentIndex,
+	  initRootVM
+	};
+
+/***/ }),
+/* 28 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(Buffer) {class Buffer {
+	  constructor() {
+	    this.buffer = [];
+	  }
+
+	  pop() {
+	    const { buffer, limit } = this;
+
+	    const res = this.buffer.reduce((res, buf) => {
+	      const { key, data } = buf;
+	      res[key] = data;
+	      return res;
+	    }, {});
+
+	    this.clear();
+
+	    return res;
+	  }
+
+	  push(data) {
+	    const keys = Object.keys(data);
+	    const { buffer } = this;
+
+	    keys.forEach((key) => {
+	      const dataPart = data[key]
+
+	      let index = buffer.findIndex(buf => buf.key === key);
+	      let newBuf = {
+	        key,
+	        data: dataPart
+	      };
+
+	      if (index !== -1) {
+	        buffer[index] = newBuf;
+	      } else{
+	        buffer.push(newBuf);
+	      }
+	      
+	    });
+	  }
+
+	  clear() {
+	    const temp = this.buffer;
+	    this.buffer = [];
+	    return temp;
+	  }
+
+	  isEmpty() {
+	    return this.buffer.length === 0;
+	  }
+	}
+
+	module.exports = Buffer;
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(29).Buffer))
+
+/***/ }),
+/* 29 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(global) {/*!
+	 * The buffer module from node.js, for the browser.
+	 *
+	 * @author   Feross Aboukhadijeh <feross@feross.org> <http://feross.org>
+	 * @license  MIT
+	 */
+	/* eslint-disable no-proto */
+
+	'use strict'
+
+	var base64 = __webpack_require__(30)
+	var ieee754 = __webpack_require__(31)
+	var isArray = __webpack_require__(32)
+
+	exports.Buffer = Buffer
+	exports.SlowBuffer = SlowBuffer
+	exports.INSPECT_MAX_BYTES = 50
+
+	/**
+	 * If `Buffer.TYPED_ARRAY_SUPPORT`:
+	 *   === true    Use Uint8Array implementation (fastest)
+	 *   === false   Use Object implementation (most compatible, even IE6)
+	 *
+	 * Browsers that support typed arrays are IE 10+, Firefox 4+, Chrome 7+, Safari 5.1+,
+	 * Opera 11.6+, iOS 4.2+.
+	 *
+	 * Due to various browser bugs, sometimes the Object implementation will be used even
+	 * when the browser supports typed arrays.
+	 *
+	 * Note:
+	 *
+	 *   - Firefox 4-29 lacks support for adding new properties to `Uint8Array` instances,
+	 *     See: https://bugzilla.mozilla.org/show_bug.cgi?id=695438.
+	 *
+	 *   - Chrome 9-10 is missing the `TypedArray.prototype.subarray` function.
+	 *
+	 *   - IE10 has a broken `TypedArray.prototype.subarray` function which returns arrays of
+	 *     incorrect length in some situations.
+
+	 * We detect these buggy browsers and set `Buffer.TYPED_ARRAY_SUPPORT` to `false` so they
+	 * get the Object implementation, which is slower but behaves correctly.
+	 */
+	Buffer.TYPED_ARRAY_SUPPORT = global.TYPED_ARRAY_SUPPORT !== undefined
+	  ? global.TYPED_ARRAY_SUPPORT
+	  : typedArraySupport()
+
+	/*
+	 * Export kMaxLength after typed array support is determined.
+	 */
+	exports.kMaxLength = kMaxLength()
+
+	function typedArraySupport () {
+	  try {
+	    var arr = new Uint8Array(1)
+	    arr.__proto__ = {__proto__: Uint8Array.prototype, foo: function () { return 42 }}
+	    return arr.foo() === 42 && // typed array instances can be augmented
+	        typeof arr.subarray === 'function' && // chrome 9-10 lack `subarray`
+	        arr.subarray(1, 1).byteLength === 0 // ie10 has broken `subarray`
+	  } catch (e) {
+	    return false
+	  }
+	}
+
+	function kMaxLength () {
+	  return Buffer.TYPED_ARRAY_SUPPORT
+	    ? 0x7fffffff
+	    : 0x3fffffff
+	}
+
+	function createBuffer (that, length) {
+	  if (kMaxLength() < length) {
+	    throw new RangeError('Invalid typed array length')
+	  }
+	  if (Buffer.TYPED_ARRAY_SUPPORT) {
+	    // Return an augmented `Uint8Array` instance, for best performance
+	    that = new Uint8Array(length)
+	    that.__proto__ = Buffer.prototype
+	  } else {
+	    // Fallback: Return an object instance of the Buffer class
+	    if (that === null) {
+	      that = new Buffer(length)
+	    }
+	    that.length = length
+	  }
+
+	  return that
+	}
+
+	/**
+	 * The Buffer constructor returns instances of `Uint8Array` that have their
+	 * prototype changed to `Buffer.prototype`. Furthermore, `Buffer` is a subclass of
+	 * `Uint8Array`, so the returned instances will have all the node `Buffer` methods
+	 * and the `Uint8Array` methods. Square bracket notation works as expected -- it
+	 * returns a single octet.
+	 *
+	 * The `Uint8Array` prototype remains unmodified.
+	 */
+
+	function Buffer (arg, encodingOrOffset, length) {
+	  if (!Buffer.TYPED_ARRAY_SUPPORT && !(this instanceof Buffer)) {
+	    return new Buffer(arg, encodingOrOffset, length)
+	  }
+
+	  // Common case.
+	  if (typeof arg === 'number') {
+	    if (typeof encodingOrOffset === 'string') {
+	      throw new Error(
+	        'If encoding is specified then the first argument must be a string'
+	      )
+	    }
+	    return allocUnsafe(this, arg)
+	  }
+	  return from(this, arg, encodingOrOffset, length)
+	}
+
+	Buffer.poolSize = 8192 // not used by this implementation
+
+	// TODO: Legacy, not needed anymore. Remove in next major version.
+	Buffer._augment = function (arr) {
+	  arr.__proto__ = Buffer.prototype
+	  return arr
+	}
+
+	function from (that, value, encodingOrOffset, length) {
+	  if (typeof value === 'number') {
+	    throw new TypeError('"value" argument must not be a number')
+	  }
+
+	  if (typeof ArrayBuffer !== 'undefined' && value instanceof ArrayBuffer) {
+	    return fromArrayBuffer(that, value, encodingOrOffset, length)
+	  }
+
+	  if (typeof value === 'string') {
+	    return fromString(that, value, encodingOrOffset)
+	  }
+
+	  return fromObject(that, value)
+	}
+
+	/**
+	 * Functionally equivalent to Buffer(arg, encoding) but throws a TypeError
+	 * if value is a number.
+	 * Buffer.from(str[, encoding])
+	 * Buffer.from(array)
+	 * Buffer.from(buffer)
+	 * Buffer.from(arrayBuffer[, byteOffset[, length]])
+	 **/
+	Buffer.from = function (value, encodingOrOffset, length) {
+	  return from(null, value, encodingOrOffset, length)
+	}
+
+	if (Buffer.TYPED_ARRAY_SUPPORT) {
+	  Buffer.prototype.__proto__ = Uint8Array.prototype
+	  Buffer.__proto__ = Uint8Array
+	  if (typeof Symbol !== 'undefined' && Symbol.species &&
+	      Buffer[Symbol.species] === Buffer) {
+	    // Fix subarray() in ES2016. See: https://github.com/feross/buffer/pull/97
+	    Object.defineProperty(Buffer, Symbol.species, {
+	      value: null,
+	      configurable: true
+	    })
+	  }
+	}
+
+	function assertSize (size) {
+	  if (typeof size !== 'number') {
+	    throw new TypeError('"size" argument must be a number')
+	  } else if (size < 0) {
+	    throw new RangeError('"size" argument must not be negative')
+	  }
+	}
+
+	function alloc (that, size, fill, encoding) {
+	  assertSize(size)
+	  if (size <= 0) {
+	    return createBuffer(that, size)
+	  }
+	  if (fill !== undefined) {
+	    // Only pay attention to encoding if it's a string. This
+	    // prevents accidentally sending in a number that would
+	    // be interpretted as a start offset.
+	    return typeof encoding === 'string'
+	      ? createBuffer(that, size).fill(fill, encoding)
+	      : createBuffer(that, size).fill(fill)
+	  }
+	  return createBuffer(that, size)
+	}
+
+	/**
+	 * Creates a new filled Buffer instance.
+	 * alloc(size[, fill[, encoding]])
+	 **/
+	Buffer.alloc = function (size, fill, encoding) {
+	  return alloc(null, size, fill, encoding)
+	}
+
+	function allocUnsafe (that, size) {
+	  assertSize(size)
+	  that = createBuffer(that, size < 0 ? 0 : checked(size) | 0)
+	  if (!Buffer.TYPED_ARRAY_SUPPORT) {
+	    for (var i = 0; i < size; ++i) {
+	      that[i] = 0
+	    }
+	  }
+	  return that
+	}
+
+	/**
+	 * Equivalent to Buffer(num), by default creates a non-zero-filled Buffer instance.
+	 * */
+	Buffer.allocUnsafe = function (size) {
+	  return allocUnsafe(null, size)
+	}
+	/**
+	 * Equivalent to SlowBuffer(num), by default creates a non-zero-filled Buffer instance.
+	 */
+	Buffer.allocUnsafeSlow = function (size) {
+	  return allocUnsafe(null, size)
+	}
+
+	function fromString (that, string, encoding) {
+	  if (typeof encoding !== 'string' || encoding === '') {
+	    encoding = 'utf8'
+	  }
+
+	  if (!Buffer.isEncoding(encoding)) {
+	    throw new TypeError('"encoding" must be a valid string encoding')
+	  }
+
+	  var length = byteLength(string, encoding) | 0
+	  that = createBuffer(that, length)
+
+	  var actual = that.write(string, encoding)
+
+	  if (actual !== length) {
+	    // Writing a hex string, for example, that contains invalid characters will
+	    // cause everything after the first invalid character to be ignored. (e.g.
+	    // 'abxxcd' will be treated as 'ab')
+	    that = that.slice(0, actual)
+	  }
+
+	  return that
+	}
+
+	function fromArrayLike (that, array) {
+	  var length = array.length < 0 ? 0 : checked(array.length) | 0
+	  that = createBuffer(that, length)
+	  for (var i = 0; i < length; i += 1) {
+	    that[i] = array[i] & 255
+	  }
+	  return that
+	}
+
+	function fromArrayBuffer (that, array, byteOffset, length) {
+	  array.byteLength // this throws if `array` is not a valid ArrayBuffer
+
+	  if (byteOffset < 0 || array.byteLength < byteOffset) {
+	    throw new RangeError('\'offset\' is out of bounds')
+	  }
+
+	  if (array.byteLength < byteOffset + (length || 0)) {
+	    throw new RangeError('\'length\' is out of bounds')
+	  }
+
+	  if (byteOffset === undefined && length === undefined) {
+	    array = new Uint8Array(array)
+	  } else if (length === undefined) {
+	    array = new Uint8Array(array, byteOffset)
+	  } else {
+	    array = new Uint8Array(array, byteOffset, length)
+	  }
+
+	  if (Buffer.TYPED_ARRAY_SUPPORT) {
+	    // Return an augmented `Uint8Array` instance, for best performance
+	    that = array
+	    that.__proto__ = Buffer.prototype
+	  } else {
+	    // Fallback: Return an object instance of the Buffer class
+	    that = fromArrayLike(that, array)
+	  }
+	  return that
+	}
+
+	function fromObject (that, obj) {
+	  if (Buffer.isBuffer(obj)) {
+	    var len = checked(obj.length) | 0
+	    that = createBuffer(that, len)
+
+	    if (that.length === 0) {
+	      return that
+	    }
+
+	    obj.copy(that, 0, 0, len)
+	    return that
+	  }
+
+	  if (obj) {
+	    if ((typeof ArrayBuffer !== 'undefined' &&
+	        obj.buffer instanceof ArrayBuffer) || 'length' in obj) {
+	      if (typeof obj.length !== 'number' || isnan(obj.length)) {
+	        return createBuffer(that, 0)
+	      }
+	      return fromArrayLike(that, obj)
+	    }
+
+	    if (obj.type === 'Buffer' && isArray(obj.data)) {
+	      return fromArrayLike(that, obj.data)
+	    }
+	  }
+
+	  throw new TypeError('First argument must be a string, Buffer, ArrayBuffer, Array, or array-like object.')
+	}
+
+	function checked (length) {
+	  // Note: cannot use `length < kMaxLength()` here because that fails when
+	  // length is NaN (which is otherwise coerced to zero.)
+	  if (length >= kMaxLength()) {
+	    throw new RangeError('Attempt to allocate Buffer larger than maximum ' +
+	                         'size: 0x' + kMaxLength().toString(16) + ' bytes')
+	  }
+	  return length | 0
+	}
+
+	function SlowBuffer (length) {
+	  if (+length != length) { // eslint-disable-line eqeqeq
+	    length = 0
+	  }
+	  return Buffer.alloc(+length)
+	}
+
+	Buffer.isBuffer = function isBuffer (b) {
+	  return !!(b != null && b._isBuffer)
+	}
+
+	Buffer.compare = function compare (a, b) {
+	  if (!Buffer.isBuffer(a) || !Buffer.isBuffer(b)) {
+	    throw new TypeError('Arguments must be Buffers')
+	  }
+
+	  if (a === b) return 0
+
+	  var x = a.length
+	  var y = b.length
+
+	  for (var i = 0, len = Math.min(x, y); i < len; ++i) {
+	    if (a[i] !== b[i]) {
+	      x = a[i]
+	      y = b[i]
+	      break
+	    }
+	  }
+
+	  if (x < y) return -1
+	  if (y < x) return 1
+	  return 0
+	}
+
+	Buffer.isEncoding = function isEncoding (encoding) {
+	  switch (String(encoding).toLowerCase()) {
+	    case 'hex':
+	    case 'utf8':
+	    case 'utf-8':
+	    case 'ascii':
+	    case 'latin1':
+	    case 'binary':
+	    case 'base64':
+	    case 'ucs2':
+	    case 'ucs-2':
+	    case 'utf16le':
+	    case 'utf-16le':
+	      return true
+	    default:
+	      return false
+	  }
+	}
+
+	Buffer.concat = function concat (list, length) {
+	  if (!isArray(list)) {
+	    throw new TypeError('"list" argument must be an Array of Buffers')
+	  }
+
+	  if (list.length === 0) {
+	    return Buffer.alloc(0)
+	  }
+
+	  var i
+	  if (length === undefined) {
+	    length = 0
+	    for (i = 0; i < list.length; ++i) {
+	      length += list[i].length
+	    }
+	  }
+
+	  var buffer = Buffer.allocUnsafe(length)
+	  var pos = 0
+	  for (i = 0; i < list.length; ++i) {
+	    var buf = list[i]
+	    if (!Buffer.isBuffer(buf)) {
+	      throw new TypeError('"list" argument must be an Array of Buffers')
+	    }
+	    buf.copy(buffer, pos)
+	    pos += buf.length
+	  }
+	  return buffer
+	}
+
+	function byteLength (string, encoding) {
+	  if (Buffer.isBuffer(string)) {
+	    return string.length
+	  }
+	  if (typeof ArrayBuffer !== 'undefined' && typeof ArrayBuffer.isView === 'function' &&
+	      (ArrayBuffer.isView(string) || string instanceof ArrayBuffer)) {
+	    return string.byteLength
+	  }
+	  if (typeof string !== 'string') {
+	    string = '' + string
+	  }
+
+	  var len = string.length
+	  if (len === 0) return 0
+
+	  // Use a for loop to avoid recursion
+	  var loweredCase = false
+	  for (;;) {
+	    switch (encoding) {
+	      case 'ascii':
+	      case 'latin1':
+	      case 'binary':
+	        return len
+	      case 'utf8':
+	      case 'utf-8':
+	      case undefined:
+	        return utf8ToBytes(string).length
+	      case 'ucs2':
+	      case 'ucs-2':
+	      case 'utf16le':
+	      case 'utf-16le':
+	        return len * 2
+	      case 'hex':
+	        return len >>> 1
+	      case 'base64':
+	        return base64ToBytes(string).length
+	      default:
+	        if (loweredCase) return utf8ToBytes(string).length // assume utf8
+	        encoding = ('' + encoding).toLowerCase()
+	        loweredCase = true
+	    }
+	  }
+	}
+	Buffer.byteLength = byteLength
+
+	function slowToString (encoding, start, end) {
+	  var loweredCase = false
+
+	  // No need to verify that "this.length <= MAX_UINT32" since it's a read-only
+	  // property of a typed array.
+
+	  // This behaves neither like String nor Uint8Array in that we set start/end
+	  // to their upper/lower bounds if the value passed is out of range.
+	  // undefined is handled specially as per ECMA-262 6th Edition,
+	  // Section 13.3.3.7 Runtime Semantics: KeyedBindingInitialization.
+	  if (start === undefined || start < 0) {
+	    start = 0
+	  }
+	  // Return early if start > this.length. Done here to prevent potential uint32
+	  // coercion fail below.
+	  if (start > this.length) {
+	    return ''
+	  }
+
+	  if (end === undefined || end > this.length) {
+	    end = this.length
+	  }
+
+	  if (end <= 0) {
+	    return ''
+	  }
+
+	  // Force coersion to uint32. This will also coerce falsey/NaN values to 0.
+	  end >>>= 0
+	  start >>>= 0
+
+	  if (end <= start) {
+	    return ''
+	  }
+
+	  if (!encoding) encoding = 'utf8'
+
+	  while (true) {
+	    switch (encoding) {
+	      case 'hex':
+	        return hexSlice(this, start, end)
+
+	      case 'utf8':
+	      case 'utf-8':
+	        return utf8Slice(this, start, end)
+
+	      case 'ascii':
+	        return asciiSlice(this, start, end)
+
+	      case 'latin1':
+	      case 'binary':
+	        return latin1Slice(this, start, end)
+
+	      case 'base64':
+	        return base64Slice(this, start, end)
+
+	      case 'ucs2':
+	      case 'ucs-2':
+	      case 'utf16le':
+	      case 'utf-16le':
+	        return utf16leSlice(this, start, end)
+
+	      default:
+	        if (loweredCase) throw new TypeError('Unknown encoding: ' + encoding)
+	        encoding = (encoding + '').toLowerCase()
+	        loweredCase = true
+	    }
+	  }
+	}
+
+	// The property is used by `Buffer.isBuffer` and `is-buffer` (in Safari 5-7) to detect
+	// Buffer instances.
+	Buffer.prototype._isBuffer = true
+
+	function swap (b, n, m) {
+	  var i = b[n]
+	  b[n] = b[m]
+	  b[m] = i
+	}
+
+	Buffer.prototype.swap16 = function swap16 () {
+	  var len = this.length
+	  if (len % 2 !== 0) {
+	    throw new RangeError('Buffer size must be a multiple of 16-bits')
+	  }
+	  for (var i = 0; i < len; i += 2) {
+	    swap(this, i, i + 1)
+	  }
+	  return this
+	}
+
+	Buffer.prototype.swap32 = function swap32 () {
+	  var len = this.length
+	  if (len % 4 !== 0) {
+	    throw new RangeError('Buffer size must be a multiple of 32-bits')
+	  }
+	  for (var i = 0; i < len; i += 4) {
+	    swap(this, i, i + 3)
+	    swap(this, i + 1, i + 2)
+	  }
+	  return this
+	}
+
+	Buffer.prototype.swap64 = function swap64 () {
+	  var len = this.length
+	  if (len % 8 !== 0) {
+	    throw new RangeError('Buffer size must be a multiple of 64-bits')
+	  }
+	  for (var i = 0; i < len; i += 8) {
+	    swap(this, i, i + 7)
+	    swap(this, i + 1, i + 6)
+	    swap(this, i + 2, i + 5)
+	    swap(this, i + 3, i + 4)
+	  }
+	  return this
+	}
+
+	Buffer.prototype.toString = function toString () {
+	  var length = this.length | 0
+	  if (length === 0) return ''
+	  if (arguments.length === 0) return utf8Slice(this, 0, length)
+	  return slowToString.apply(this, arguments)
+	}
+
+	Buffer.prototype.equals = function equals (b) {
+	  if (!Buffer.isBuffer(b)) throw new TypeError('Argument must be a Buffer')
+	  if (this === b) return true
+	  return Buffer.compare(this, b) === 0
+	}
+
+	Buffer.prototype.inspect = function inspect () {
+	  var str = ''
+	  var max = exports.INSPECT_MAX_BYTES
+	  if (this.length > 0) {
+	    str = this.toString('hex', 0, max).match(/.{2}/g).join(' ')
+	    if (this.length > max) str += ' ... '
+	  }
+	  return '<Buffer ' + str + '>'
+	}
+
+	Buffer.prototype.compare = function compare (target, start, end, thisStart, thisEnd) {
+	  if (!Buffer.isBuffer(target)) {
+	    throw new TypeError('Argument must be a Buffer')
+	  }
+
+	  if (start === undefined) {
+	    start = 0
+	  }
+	  if (end === undefined) {
+	    end = target ? target.length : 0
+	  }
+	  if (thisStart === undefined) {
+	    thisStart = 0
+	  }
+	  if (thisEnd === undefined) {
+	    thisEnd = this.length
+	  }
+
+	  if (start < 0 || end > target.length || thisStart < 0 || thisEnd > this.length) {
+	    throw new RangeError('out of range index')
+	  }
+
+	  if (thisStart >= thisEnd && start >= end) {
+	    return 0
+	  }
+	  if (thisStart >= thisEnd) {
+	    return -1
+	  }
+	  if (start >= end) {
+	    return 1
+	  }
+
+	  start >>>= 0
+	  end >>>= 0
+	  thisStart >>>= 0
+	  thisEnd >>>= 0
+
+	  if (this === target) return 0
+
+	  var x = thisEnd - thisStart
+	  var y = end - start
+	  var len = Math.min(x, y)
+
+	  var thisCopy = this.slice(thisStart, thisEnd)
+	  var targetCopy = target.slice(start, end)
+
+	  for (var i = 0; i < len; ++i) {
+	    if (thisCopy[i] !== targetCopy[i]) {
+	      x = thisCopy[i]
+	      y = targetCopy[i]
+	      break
+	    }
+	  }
+
+	  if (x < y) return -1
+	  if (y < x) return 1
+	  return 0
+	}
+
+	// Finds either the first index of `val` in `buffer` at offset >= `byteOffset`,
+	// OR the last index of `val` in `buffer` at offset <= `byteOffset`.
+	//
+	// Arguments:
+	// - buffer - a Buffer to search
+	// - val - a string, Buffer, or number
+	// - byteOffset - an index into `buffer`; will be clamped to an int32
+	// - encoding - an optional encoding, relevant is val is a string
+	// - dir - true for indexOf, false for lastIndexOf
+	function bidirectionalIndexOf (buffer, val, byteOffset, encoding, dir) {
+	  // Empty buffer means no match
+	  if (buffer.length === 0) return -1
+
+	  // Normalize byteOffset
+	  if (typeof byteOffset === 'string') {
+	    encoding = byteOffset
+	    byteOffset = 0
+	  } else if (byteOffset > 0x7fffffff) {
+	    byteOffset = 0x7fffffff
+	  } else if (byteOffset < -0x80000000) {
+	    byteOffset = -0x80000000
+	  }
+	  byteOffset = +byteOffset  // Coerce to Number.
+	  if (isNaN(byteOffset)) {
+	    // byteOffset: it it's undefined, null, NaN, "foo", etc, search whole buffer
+	    byteOffset = dir ? 0 : (buffer.length - 1)
+	  }
+
+	  // Normalize byteOffset: negative offsets start from the end of the buffer
+	  if (byteOffset < 0) byteOffset = buffer.length + byteOffset
+	  if (byteOffset >= buffer.length) {
+	    if (dir) return -1
+	    else byteOffset = buffer.length - 1
+	  } else if (byteOffset < 0) {
+	    if (dir) byteOffset = 0
+	    else return -1
+	  }
+
+	  // Normalize val
+	  if (typeof val === 'string') {
+	    val = Buffer.from(val, encoding)
+	  }
+
+	  // Finally, search either indexOf (if dir is true) or lastIndexOf
+	  if (Buffer.isBuffer(val)) {
+	    // Special case: looking for empty string/buffer always fails
+	    if (val.length === 0) {
+	      return -1
+	    }
+	    return arrayIndexOf(buffer, val, byteOffset, encoding, dir)
+	  } else if (typeof val === 'number') {
+	    val = val & 0xFF // Search for a byte value [0-255]
+	    if (Buffer.TYPED_ARRAY_SUPPORT &&
+	        typeof Uint8Array.prototype.indexOf === 'function') {
+	      if (dir) {
+	        return Uint8Array.prototype.indexOf.call(buffer, val, byteOffset)
+	      } else {
+	        return Uint8Array.prototype.lastIndexOf.call(buffer, val, byteOffset)
+	      }
+	    }
+	    return arrayIndexOf(buffer, [ val ], byteOffset, encoding, dir)
+	  }
+
+	  throw new TypeError('val must be string, number or Buffer')
+	}
+
+	function arrayIndexOf (arr, val, byteOffset, encoding, dir) {
+	  var indexSize = 1
+	  var arrLength = arr.length
+	  var valLength = val.length
+
+	  if (encoding !== undefined) {
+	    encoding = String(encoding).toLowerCase()
+	    if (encoding === 'ucs2' || encoding === 'ucs-2' ||
+	        encoding === 'utf16le' || encoding === 'utf-16le') {
+	      if (arr.length < 2 || val.length < 2) {
+	        return -1
+	      }
+	      indexSize = 2
+	      arrLength /= 2
+	      valLength /= 2
+	      byteOffset /= 2
+	    }
+	  }
+
+	  function read (buf, i) {
+	    if (indexSize === 1) {
+	      return buf[i]
+	    } else {
+	      return buf.readUInt16BE(i * indexSize)
+	    }
+	  }
+
+	  var i
+	  if (dir) {
+	    var foundIndex = -1
+	    for (i = byteOffset; i < arrLength; i++) {
+	      if (read(arr, i) === read(val, foundIndex === -1 ? 0 : i - foundIndex)) {
+	        if (foundIndex === -1) foundIndex = i
+	        if (i - foundIndex + 1 === valLength) return foundIndex * indexSize
+	      } else {
+	        if (foundIndex !== -1) i -= i - foundIndex
+	        foundIndex = -1
+	      }
+	    }
+	  } else {
+	    if (byteOffset + valLength > arrLength) byteOffset = arrLength - valLength
+	    for (i = byteOffset; i >= 0; i--) {
+	      var found = true
+	      for (var j = 0; j < valLength; j++) {
+	        if (read(arr, i + j) !== read(val, j)) {
+	          found = false
+	          break
+	        }
+	      }
+	      if (found) return i
+	    }
+	  }
+
+	  return -1
+	}
+
+	Buffer.prototype.includes = function includes (val, byteOffset, encoding) {
+	  return this.indexOf(val, byteOffset, encoding) !== -1
+	}
+
+	Buffer.prototype.indexOf = function indexOf (val, byteOffset, encoding) {
+	  return bidirectionalIndexOf(this, val, byteOffset, encoding, true)
+	}
+
+	Buffer.prototype.lastIndexOf = function lastIndexOf (val, byteOffset, encoding) {
+	  return bidirectionalIndexOf(this, val, byteOffset, encoding, false)
+	}
+
+	function hexWrite (buf, string, offset, length) {
+	  offset = Number(offset) || 0
+	  var remaining = buf.length - offset
+	  if (!length) {
+	    length = remaining
+	  } else {
+	    length = Number(length)
+	    if (length > remaining) {
+	      length = remaining
+	    }
+	  }
+
+	  // must be an even number of digits
+	  var strLen = string.length
+	  if (strLen % 2 !== 0) throw new TypeError('Invalid hex string')
+
+	  if (length > strLen / 2) {
+	    length = strLen / 2
+	  }
+	  for (var i = 0; i < length; ++i) {
+	    var parsed = parseInt(string.substr(i * 2, 2), 16)
+	    if (isNaN(parsed)) return i
+	    buf[offset + i] = parsed
+	  }
+	  return i
+	}
+
+	function utf8Write (buf, string, offset, length) {
+	  return blitBuffer(utf8ToBytes(string, buf.length - offset), buf, offset, length)
+	}
+
+	function asciiWrite (buf, string, offset, length) {
+	  return blitBuffer(asciiToBytes(string), buf, offset, length)
+	}
+
+	function latin1Write (buf, string, offset, length) {
+	  return asciiWrite(buf, string, offset, length)
+	}
+
+	function base64Write (buf, string, offset, length) {
+	  return blitBuffer(base64ToBytes(string), buf, offset, length)
+	}
+
+	function ucs2Write (buf, string, offset, length) {
+	  return blitBuffer(utf16leToBytes(string, buf.length - offset), buf, offset, length)
+	}
+
+	Buffer.prototype.write = function write (string, offset, length, encoding) {
+	  // Buffer#write(string)
+	  if (offset === undefined) {
+	    encoding = 'utf8'
+	    length = this.length
+	    offset = 0
+	  // Buffer#write(string, encoding)
+	  } else if (length === undefined && typeof offset === 'string') {
+	    encoding = offset
+	    length = this.length
+	    offset = 0
+	  // Buffer#write(string, offset[, length][, encoding])
+	  } else if (isFinite(offset)) {
+	    offset = offset | 0
+	    if (isFinite(length)) {
+	      length = length | 0
+	      if (encoding === undefined) encoding = 'utf8'
+	    } else {
+	      encoding = length
+	      length = undefined
+	    }
+	  // legacy write(string, encoding, offset, length) - remove in v0.13
+	  } else {
+	    throw new Error(
+	      'Buffer.write(string, encoding, offset[, length]) is no longer supported'
+	    )
+	  }
+
+	  var remaining = this.length - offset
+	  if (length === undefined || length > remaining) length = remaining
+
+	  if ((string.length > 0 && (length < 0 || offset < 0)) || offset > this.length) {
+	    throw new RangeError('Attempt to write outside buffer bounds')
+	  }
+
+	  if (!encoding) encoding = 'utf8'
+
+	  var loweredCase = false
+	  for (;;) {
+	    switch (encoding) {
+	      case 'hex':
+	        return hexWrite(this, string, offset, length)
+
+	      case 'utf8':
+	      case 'utf-8':
+	        return utf8Write(this, string, offset, length)
+
+	      case 'ascii':
+	        return asciiWrite(this, string, offset, length)
+
+	      case 'latin1':
+	      case 'binary':
+	        return latin1Write(this, string, offset, length)
+
+	      case 'base64':
+	        // Warning: maxLength not taken into account in base64Write
+	        return base64Write(this, string, offset, length)
+
+	      case 'ucs2':
+	      case 'ucs-2':
+	      case 'utf16le':
+	      case 'utf-16le':
+	        return ucs2Write(this, string, offset, length)
+
+	      default:
+	        if (loweredCase) throw new TypeError('Unknown encoding: ' + encoding)
+	        encoding = ('' + encoding).toLowerCase()
+	        loweredCase = true
+	    }
+	  }
+	}
+
+	Buffer.prototype.toJSON = function toJSON () {
+	  return {
+	    type: 'Buffer',
+	    data: Array.prototype.slice.call(this._arr || this, 0)
+	  }
+	}
+
+	function base64Slice (buf, start, end) {
+	  if (start === 0 && end === buf.length) {
+	    return base64.fromByteArray(buf)
+	  } else {
+	    return base64.fromByteArray(buf.slice(start, end))
+	  }
+	}
+
+	function utf8Slice (buf, start, end) {
+	  end = Math.min(buf.length, end)
+	  var res = []
+
+	  var i = start
+	  while (i < end) {
+	    var firstByte = buf[i]
+	    var codePoint = null
+	    var bytesPerSequence = (firstByte > 0xEF) ? 4
+	      : (firstByte > 0xDF) ? 3
+	      : (firstByte > 0xBF) ? 2
+	      : 1
+
+	    if (i + bytesPerSequence <= end) {
+	      var secondByte, thirdByte, fourthByte, tempCodePoint
+
+	      switch (bytesPerSequence) {
+	        case 1:
+	          if (firstByte < 0x80) {
+	            codePoint = firstByte
+	          }
+	          break
+	        case 2:
+	          secondByte = buf[i + 1]
+	          if ((secondByte & 0xC0) === 0x80) {
+	            tempCodePoint = (firstByte & 0x1F) << 0x6 | (secondByte & 0x3F)
+	            if (tempCodePoint > 0x7F) {
+	              codePoint = tempCodePoint
+	            }
+	          }
+	          break
+	        case 3:
+	          secondByte = buf[i + 1]
+	          thirdByte = buf[i + 2]
+	          if ((secondByte & 0xC0) === 0x80 && (thirdByte & 0xC0) === 0x80) {
+	            tempCodePoint = (firstByte & 0xF) << 0xC | (secondByte & 0x3F) << 0x6 | (thirdByte & 0x3F)
+	            if (tempCodePoint > 0x7FF && (tempCodePoint < 0xD800 || tempCodePoint > 0xDFFF)) {
+	              codePoint = tempCodePoint
+	            }
+	          }
+	          break
+	        case 4:
+	          secondByte = buf[i + 1]
+	          thirdByte = buf[i + 2]
+	          fourthByte = buf[i + 3]
+	          if ((secondByte & 0xC0) === 0x80 && (thirdByte & 0xC0) === 0x80 && (fourthByte & 0xC0) === 0x80) {
+	            tempCodePoint = (firstByte & 0xF) << 0x12 | (secondByte & 0x3F) << 0xC | (thirdByte & 0x3F) << 0x6 | (fourthByte & 0x3F)
+	            if (tempCodePoint > 0xFFFF && tempCodePoint < 0x110000) {
+	              codePoint = tempCodePoint
+	            }
+	          }
+	      }
+	    }
+
+	    if (codePoint === null) {
+	      // we did not generate a valid codePoint so insert a
+	      // replacement char (U+FFFD) and advance only 1 byte
+	      codePoint = 0xFFFD
+	      bytesPerSequence = 1
+	    } else if (codePoint > 0xFFFF) {
+	      // encode to utf16 (surrogate pair dance)
+	      codePoint -= 0x10000
+	      res.push(codePoint >>> 10 & 0x3FF | 0xD800)
+	      codePoint = 0xDC00 | codePoint & 0x3FF
+	    }
+
+	    res.push(codePoint)
+	    i += bytesPerSequence
+	  }
+
+	  return decodeCodePointsArray(res)
+	}
+
+	// Based on http://stackoverflow.com/a/22747272/680742, the browser with
+	// the lowest limit is Chrome, with 0x10000 args.
+	// We go 1 magnitude less, for safety
+	var MAX_ARGUMENTS_LENGTH = 0x1000
+
+	function decodeCodePointsArray (codePoints) {
+	  var len = codePoints.length
+	  if (len <= MAX_ARGUMENTS_LENGTH) {
+	    return String.fromCharCode.apply(String, codePoints) // avoid extra slice()
+	  }
+
+	  // Decode in chunks to avoid "call stack size exceeded".
+	  var res = ''
+	  var i = 0
+	  while (i < len) {
+	    res += String.fromCharCode.apply(
+	      String,
+	      codePoints.slice(i, i += MAX_ARGUMENTS_LENGTH)
+	    )
+	  }
+	  return res
+	}
+
+	function asciiSlice (buf, start, end) {
+	  var ret = ''
+	  end = Math.min(buf.length, end)
+
+	  for (var i = start; i < end; ++i) {
+	    ret += String.fromCharCode(buf[i] & 0x7F)
+	  }
+	  return ret
+	}
+
+	function latin1Slice (buf, start, end) {
+	  var ret = ''
+	  end = Math.min(buf.length, end)
+
+	  for (var i = start; i < end; ++i) {
+	    ret += String.fromCharCode(buf[i])
+	  }
+	  return ret
+	}
+
+	function hexSlice (buf, start, end) {
+	  var len = buf.length
+
+	  if (!start || start < 0) start = 0
+	  if (!end || end < 0 || end > len) end = len
+
+	  var out = ''
+	  for (var i = start; i < end; ++i) {
+	    out += toHex(buf[i])
+	  }
+	  return out
+	}
+
+	function utf16leSlice (buf, start, end) {
+	  var bytes = buf.slice(start, end)
+	  var res = ''
+	  for (var i = 0; i < bytes.length; i += 2) {
+	    res += String.fromCharCode(bytes[i] + bytes[i + 1] * 256)
+	  }
+	  return res
+	}
+
+	Buffer.prototype.slice = function slice (start, end) {
+	  var len = this.length
+	  start = ~~start
+	  end = end === undefined ? len : ~~end
+
+	  if (start < 0) {
+	    start += len
+	    if (start < 0) start = 0
+	  } else if (start > len) {
+	    start = len
+	  }
+
+	  if (end < 0) {
+	    end += len
+	    if (end < 0) end = 0
+	  } else if (end > len) {
+	    end = len
+	  }
+
+	  if (end < start) end = start
+
+	  var newBuf
+	  if (Buffer.TYPED_ARRAY_SUPPORT) {
+	    newBuf = this.subarray(start, end)
+	    newBuf.__proto__ = Buffer.prototype
+	  } else {
+	    var sliceLen = end - start
+	    newBuf = new Buffer(sliceLen, undefined)
+	    for (var i = 0; i < sliceLen; ++i) {
+	      newBuf[i] = this[i + start]
+	    }
+	  }
+
+	  return newBuf
+	}
+
+	/*
+	 * Need to make sure that buffer isn't trying to write out of bounds.
+	 */
+	function checkOffset (offset, ext, length) {
+	  if ((offset % 1) !== 0 || offset < 0) throw new RangeError('offset is not uint')
+	  if (offset + ext > length) throw new RangeError('Trying to access beyond buffer length')
+	}
+
+	Buffer.prototype.readUIntLE = function readUIntLE (offset, byteLength, noAssert) {
+	  offset = offset | 0
+	  byteLength = byteLength | 0
+	  if (!noAssert) checkOffset(offset, byteLength, this.length)
+
+	  var val = this[offset]
+	  var mul = 1
+	  var i = 0
+	  while (++i < byteLength && (mul *= 0x100)) {
+	    val += this[offset + i] * mul
+	  }
+
+	  return val
+	}
+
+	Buffer.prototype.readUIntBE = function readUIntBE (offset, byteLength, noAssert) {
+	  offset = offset | 0
+	  byteLength = byteLength | 0
+	  if (!noAssert) {
+	    checkOffset(offset, byteLength, this.length)
+	  }
+
+	  var val = this[offset + --byteLength]
+	  var mul = 1
+	  while (byteLength > 0 && (mul *= 0x100)) {
+	    val += this[offset + --byteLength] * mul
+	  }
+
+	  return val
+	}
+
+	Buffer.prototype.readUInt8 = function readUInt8 (offset, noAssert) {
+	  if (!noAssert) checkOffset(offset, 1, this.length)
+	  return this[offset]
+	}
+
+	Buffer.prototype.readUInt16LE = function readUInt16LE (offset, noAssert) {
+	  if (!noAssert) checkOffset(offset, 2, this.length)
+	  return this[offset] | (this[offset + 1] << 8)
+	}
+
+	Buffer.prototype.readUInt16BE = function readUInt16BE (offset, noAssert) {
+	  if (!noAssert) checkOffset(offset, 2, this.length)
+	  return (this[offset] << 8) | this[offset + 1]
+	}
+
+	Buffer.prototype.readUInt32LE = function readUInt32LE (offset, noAssert) {
+	  if (!noAssert) checkOffset(offset, 4, this.length)
+
+	  return ((this[offset]) |
+	      (this[offset + 1] << 8) |
+	      (this[offset + 2] << 16)) +
+	      (this[offset + 3] * 0x1000000)
+	}
+
+	Buffer.prototype.readUInt32BE = function readUInt32BE (offset, noAssert) {
+	  if (!noAssert) checkOffset(offset, 4, this.length)
+
+	  return (this[offset] * 0x1000000) +
+	    ((this[offset + 1] << 16) |
+	    (this[offset + 2] << 8) |
+	    this[offset + 3])
+	}
+
+	Buffer.prototype.readIntLE = function readIntLE (offset, byteLength, noAssert) {
+	  offset = offset | 0
+	  byteLength = byteLength | 0
+	  if (!noAssert) checkOffset(offset, byteLength, this.length)
+
+	  var val = this[offset]
+	  var mul = 1
+	  var i = 0
+	  while (++i < byteLength && (mul *= 0x100)) {
+	    val += this[offset + i] * mul
+	  }
+	  mul *= 0x80
+
+	  if (val >= mul) val -= Math.pow(2, 8 * byteLength)
+
+	  return val
+	}
+
+	Buffer.prototype.readIntBE = function readIntBE (offset, byteLength, noAssert) {
+	  offset = offset | 0
+	  byteLength = byteLength | 0
+	  if (!noAssert) checkOffset(offset, byteLength, this.length)
+
+	  var i = byteLength
+	  var mul = 1
+	  var val = this[offset + --i]
+	  while (i > 0 && (mul *= 0x100)) {
+	    val += this[offset + --i] * mul
+	  }
+	  mul *= 0x80
+
+	  if (val >= mul) val -= Math.pow(2, 8 * byteLength)
+
+	  return val
+	}
+
+	Buffer.prototype.readInt8 = function readInt8 (offset, noAssert) {
+	  if (!noAssert) checkOffset(offset, 1, this.length)
+	  if (!(this[offset] & 0x80)) return (this[offset])
+	  return ((0xff - this[offset] + 1) * -1)
+	}
+
+	Buffer.prototype.readInt16LE = function readInt16LE (offset, noAssert) {
+	  if (!noAssert) checkOffset(offset, 2, this.length)
+	  var val = this[offset] | (this[offset + 1] << 8)
+	  return (val & 0x8000) ? val | 0xFFFF0000 : val
+	}
+
+	Buffer.prototype.readInt16BE = function readInt16BE (offset, noAssert) {
+	  if (!noAssert) checkOffset(offset, 2, this.length)
+	  var val = this[offset + 1] | (this[offset] << 8)
+	  return (val & 0x8000) ? val | 0xFFFF0000 : val
+	}
+
+	Buffer.prototype.readInt32LE = function readInt32LE (offset, noAssert) {
+	  if (!noAssert) checkOffset(offset, 4, this.length)
+
+	  return (this[offset]) |
+	    (this[offset + 1] << 8) |
+	    (this[offset + 2] << 16) |
+	    (this[offset + 3] << 24)
+	}
+
+	Buffer.prototype.readInt32BE = function readInt32BE (offset, noAssert) {
+	  if (!noAssert) checkOffset(offset, 4, this.length)
+
+	  return (this[offset] << 24) |
+	    (this[offset + 1] << 16) |
+	    (this[offset + 2] << 8) |
+	    (this[offset + 3])
+	}
+
+	Buffer.prototype.readFloatLE = function readFloatLE (offset, noAssert) {
+	  if (!noAssert) checkOffset(offset, 4, this.length)
+	  return ieee754.read(this, offset, true, 23, 4)
+	}
+
+	Buffer.prototype.readFloatBE = function readFloatBE (offset, noAssert) {
+	  if (!noAssert) checkOffset(offset, 4, this.length)
+	  return ieee754.read(this, offset, false, 23, 4)
+	}
+
+	Buffer.prototype.readDoubleLE = function readDoubleLE (offset, noAssert) {
+	  if (!noAssert) checkOffset(offset, 8, this.length)
+	  return ieee754.read(this, offset, true, 52, 8)
+	}
+
+	Buffer.prototype.readDoubleBE = function readDoubleBE (offset, noAssert) {
+	  if (!noAssert) checkOffset(offset, 8, this.length)
+	  return ieee754.read(this, offset, false, 52, 8)
+	}
+
+	function checkInt (buf, value, offset, ext, max, min) {
+	  if (!Buffer.isBuffer(buf)) throw new TypeError('"buffer" argument must be a Buffer instance')
+	  if (value > max || value < min) throw new RangeError('"value" argument is out of bounds')
+	  if (offset + ext > buf.length) throw new RangeError('Index out of range')
+	}
+
+	Buffer.prototype.writeUIntLE = function writeUIntLE (value, offset, byteLength, noAssert) {
+	  value = +value
+	  offset = offset | 0
+	  byteLength = byteLength | 0
+	  if (!noAssert) {
+	    var maxBytes = Math.pow(2, 8 * byteLength) - 1
+	    checkInt(this, value, offset, byteLength, maxBytes, 0)
+	  }
+
+	  var mul = 1
+	  var i = 0
+	  this[offset] = value & 0xFF
+	  while (++i < byteLength && (mul *= 0x100)) {
+	    this[offset + i] = (value / mul) & 0xFF
+	  }
+
+	  return offset + byteLength
+	}
+
+	Buffer.prototype.writeUIntBE = function writeUIntBE (value, offset, byteLength, noAssert) {
+	  value = +value
+	  offset = offset | 0
+	  byteLength = byteLength | 0
+	  if (!noAssert) {
+	    var maxBytes = Math.pow(2, 8 * byteLength) - 1
+	    checkInt(this, value, offset, byteLength, maxBytes, 0)
+	  }
+
+	  var i = byteLength - 1
+	  var mul = 1
+	  this[offset + i] = value & 0xFF
+	  while (--i >= 0 && (mul *= 0x100)) {
+	    this[offset + i] = (value / mul) & 0xFF
+	  }
+
+	  return offset + byteLength
+	}
+
+	Buffer.prototype.writeUInt8 = function writeUInt8 (value, offset, noAssert) {
+	  value = +value
+	  offset = offset | 0
+	  if (!noAssert) checkInt(this, value, offset, 1, 0xff, 0)
+	  if (!Buffer.TYPED_ARRAY_SUPPORT) value = Math.floor(value)
+	  this[offset] = (value & 0xff)
+	  return offset + 1
+	}
+
+	function objectWriteUInt16 (buf, value, offset, littleEndian) {
+	  if (value < 0) value = 0xffff + value + 1
+	  for (var i = 0, j = Math.min(buf.length - offset, 2); i < j; ++i) {
+	    buf[offset + i] = (value & (0xff << (8 * (littleEndian ? i : 1 - i)))) >>>
+	      (littleEndian ? i : 1 - i) * 8
+	  }
+	}
+
+	Buffer.prototype.writeUInt16LE = function writeUInt16LE (value, offset, noAssert) {
+	  value = +value
+	  offset = offset | 0
+	  if (!noAssert) checkInt(this, value, offset, 2, 0xffff, 0)
+	  if (Buffer.TYPED_ARRAY_SUPPORT) {
+	    this[offset] = (value & 0xff)
+	    this[offset + 1] = (value >>> 8)
+	  } else {
+	    objectWriteUInt16(this, value, offset, true)
+	  }
+	  return offset + 2
+	}
+
+	Buffer.prototype.writeUInt16BE = function writeUInt16BE (value, offset, noAssert) {
+	  value = +value
+	  offset = offset | 0
+	  if (!noAssert) checkInt(this, value, offset, 2, 0xffff, 0)
+	  if (Buffer.TYPED_ARRAY_SUPPORT) {
+	    this[offset] = (value >>> 8)
+	    this[offset + 1] = (value & 0xff)
+	  } else {
+	    objectWriteUInt16(this, value, offset, false)
+	  }
+	  return offset + 2
+	}
+
+	function objectWriteUInt32 (buf, value, offset, littleEndian) {
+	  if (value < 0) value = 0xffffffff + value + 1
+	  for (var i = 0, j = Math.min(buf.length - offset, 4); i < j; ++i) {
+	    buf[offset + i] = (value >>> (littleEndian ? i : 3 - i) * 8) & 0xff
+	  }
+	}
+
+	Buffer.prototype.writeUInt32LE = function writeUInt32LE (value, offset, noAssert) {
+	  value = +value
+	  offset = offset | 0
+	  if (!noAssert) checkInt(this, value, offset, 4, 0xffffffff, 0)
+	  if (Buffer.TYPED_ARRAY_SUPPORT) {
+	    this[offset + 3] = (value >>> 24)
+	    this[offset + 2] = (value >>> 16)
+	    this[offset + 1] = (value >>> 8)
+	    this[offset] = (value & 0xff)
+	  } else {
+	    objectWriteUInt32(this, value, offset, true)
+	  }
+	  return offset + 4
+	}
+
+	Buffer.prototype.writeUInt32BE = function writeUInt32BE (value, offset, noAssert) {
+	  value = +value
+	  offset = offset | 0
+	  if (!noAssert) checkInt(this, value, offset, 4, 0xffffffff, 0)
+	  if (Buffer.TYPED_ARRAY_SUPPORT) {
+	    this[offset] = (value >>> 24)
+	    this[offset + 1] = (value >>> 16)
+	    this[offset + 2] = (value >>> 8)
+	    this[offset + 3] = (value & 0xff)
+	  } else {
+	    objectWriteUInt32(this, value, offset, false)
+	  }
+	  return offset + 4
+	}
+
+	Buffer.prototype.writeIntLE = function writeIntLE (value, offset, byteLength, noAssert) {
+	  value = +value
+	  offset = offset | 0
+	  if (!noAssert) {
+	    var limit = Math.pow(2, 8 * byteLength - 1)
+
+	    checkInt(this, value, offset, byteLength, limit - 1, -limit)
+	  }
+
+	  var i = 0
+	  var mul = 1
+	  var sub = 0
+	  this[offset] = value & 0xFF
+	  while (++i < byteLength && (mul *= 0x100)) {
+	    if (value < 0 && sub === 0 && this[offset + i - 1] !== 0) {
+	      sub = 1
+	    }
+	    this[offset + i] = ((value / mul) >> 0) - sub & 0xFF
+	  }
+
+	  return offset + byteLength
+	}
+
+	Buffer.prototype.writeIntBE = function writeIntBE (value, offset, byteLength, noAssert) {
+	  value = +value
+	  offset = offset | 0
+	  if (!noAssert) {
+	    var limit = Math.pow(2, 8 * byteLength - 1)
+
+	    checkInt(this, value, offset, byteLength, limit - 1, -limit)
+	  }
+
+	  var i = byteLength - 1
+	  var mul = 1
+	  var sub = 0
+	  this[offset + i] = value & 0xFF
+	  while (--i >= 0 && (mul *= 0x100)) {
+	    if (value < 0 && sub === 0 && this[offset + i + 1] !== 0) {
+	      sub = 1
+	    }
+	    this[offset + i] = ((value / mul) >> 0) - sub & 0xFF
+	  }
+
+	  return offset + byteLength
+	}
+
+	Buffer.prototype.writeInt8 = function writeInt8 (value, offset, noAssert) {
+	  value = +value
+	  offset = offset | 0
+	  if (!noAssert) checkInt(this, value, offset, 1, 0x7f, -0x80)
+	  if (!Buffer.TYPED_ARRAY_SUPPORT) value = Math.floor(value)
+	  if (value < 0) value = 0xff + value + 1
+	  this[offset] = (value & 0xff)
+	  return offset + 1
+	}
+
+	Buffer.prototype.writeInt16LE = function writeInt16LE (value, offset, noAssert) {
+	  value = +value
+	  offset = offset | 0
+	  if (!noAssert) checkInt(this, value, offset, 2, 0x7fff, -0x8000)
+	  if (Buffer.TYPED_ARRAY_SUPPORT) {
+	    this[offset] = (value & 0xff)
+	    this[offset + 1] = (value >>> 8)
+	  } else {
+	    objectWriteUInt16(this, value, offset, true)
+	  }
+	  return offset + 2
+	}
+
+	Buffer.prototype.writeInt16BE = function writeInt16BE (value, offset, noAssert) {
+	  value = +value
+	  offset = offset | 0
+	  if (!noAssert) checkInt(this, value, offset, 2, 0x7fff, -0x8000)
+	  if (Buffer.TYPED_ARRAY_SUPPORT) {
+	    this[offset] = (value >>> 8)
+	    this[offset + 1] = (value & 0xff)
+	  } else {
+	    objectWriteUInt16(this, value, offset, false)
+	  }
+	  return offset + 2
+	}
+
+	Buffer.prototype.writeInt32LE = function writeInt32LE (value, offset, noAssert) {
+	  value = +value
+	  offset = offset | 0
+	  if (!noAssert) checkInt(this, value, offset, 4, 0x7fffffff, -0x80000000)
+	  if (Buffer.TYPED_ARRAY_SUPPORT) {
+	    this[offset] = (value & 0xff)
+	    this[offset + 1] = (value >>> 8)
+	    this[offset + 2] = (value >>> 16)
+	    this[offset + 3] = (value >>> 24)
+	  } else {
+	    objectWriteUInt32(this, value, offset, true)
+	  }
+	  return offset + 4
+	}
+
+	Buffer.prototype.writeInt32BE = function writeInt32BE (value, offset, noAssert) {
+	  value = +value
+	  offset = offset | 0
+	  if (!noAssert) checkInt(this, value, offset, 4, 0x7fffffff, -0x80000000)
+	  if (value < 0) value = 0xffffffff + value + 1
+	  if (Buffer.TYPED_ARRAY_SUPPORT) {
+	    this[offset] = (value >>> 24)
+	    this[offset + 1] = (value >>> 16)
+	    this[offset + 2] = (value >>> 8)
+	    this[offset + 3] = (value & 0xff)
+	  } else {
+	    objectWriteUInt32(this, value, offset, false)
+	  }
+	  return offset + 4
+	}
+
+	function checkIEEE754 (buf, value, offset, ext, max, min) {
+	  if (offset + ext > buf.length) throw new RangeError('Index out of range')
+	  if (offset < 0) throw new RangeError('Index out of range')
+	}
+
+	function writeFloat (buf, value, offset, littleEndian, noAssert) {
+	  if (!noAssert) {
+	    checkIEEE754(buf, value, offset, 4, 3.4028234663852886e+38, -3.4028234663852886e+38)
+	  }
+	  ieee754.write(buf, value, offset, littleEndian, 23, 4)
+	  return offset + 4
+	}
+
+	Buffer.prototype.writeFloatLE = function writeFloatLE (value, offset, noAssert) {
+	  return writeFloat(this, value, offset, true, noAssert)
+	}
+
+	Buffer.prototype.writeFloatBE = function writeFloatBE (value, offset, noAssert) {
+	  return writeFloat(this, value, offset, false, noAssert)
+	}
+
+	function writeDouble (buf, value, offset, littleEndian, noAssert) {
+	  if (!noAssert) {
+	    checkIEEE754(buf, value, offset, 8, 1.7976931348623157E+308, -1.7976931348623157E+308)
+	  }
+	  ieee754.write(buf, value, offset, littleEndian, 52, 8)
+	  return offset + 8
+	}
+
+	Buffer.prototype.writeDoubleLE = function writeDoubleLE (value, offset, noAssert) {
+	  return writeDouble(this, value, offset, true, noAssert)
+	}
+
+	Buffer.prototype.writeDoubleBE = function writeDoubleBE (value, offset, noAssert) {
+	  return writeDouble(this, value, offset, false, noAssert)
+	}
+
+	// copy(targetBuffer, targetStart=0, sourceStart=0, sourceEnd=buffer.length)
+	Buffer.prototype.copy = function copy (target, targetStart, start, end) {
+	  if (!start) start = 0
+	  if (!end && end !== 0) end = this.length
+	  if (targetStart >= target.length) targetStart = target.length
+	  if (!targetStart) targetStart = 0
+	  if (end > 0 && end < start) end = start
+
+	  // Copy 0 bytes; we're done
+	  if (end === start) return 0
+	  if (target.length === 0 || this.length === 0) return 0
+
+	  // Fatal error conditions
+	  if (targetStart < 0) {
+	    throw new RangeError('targetStart out of bounds')
+	  }
+	  if (start < 0 || start >= this.length) throw new RangeError('sourceStart out of bounds')
+	  if (end < 0) throw new RangeError('sourceEnd out of bounds')
+
+	  // Are we oob?
+	  if (end > this.length) end = this.length
+	  if (target.length - targetStart < end - start) {
+	    end = target.length - targetStart + start
+	  }
+
+	  var len = end - start
+	  var i
+
+	  if (this === target && start < targetStart && targetStart < end) {
+	    // descending copy from end
+	    for (i = len - 1; i >= 0; --i) {
+	      target[i + targetStart] = this[i + start]
+	    }
+	  } else if (len < 1000 || !Buffer.TYPED_ARRAY_SUPPORT) {
+	    // ascending copy from start
+	    for (i = 0; i < len; ++i) {
+	      target[i + targetStart] = this[i + start]
+	    }
+	  } else {
+	    Uint8Array.prototype.set.call(
+	      target,
+	      this.subarray(start, start + len),
+	      targetStart
+	    )
+	  }
+
+	  return len
+	}
+
+	// Usage:
+	//    buffer.fill(number[, offset[, end]])
+	//    buffer.fill(buffer[, offset[, end]])
+	//    buffer.fill(string[, offset[, end]][, encoding])
+	Buffer.prototype.fill = function fill (val, start, end, encoding) {
+	  // Handle string cases:
+	  if (typeof val === 'string') {
+	    if (typeof start === 'string') {
+	      encoding = start
+	      start = 0
+	      end = this.length
+	    } else if (typeof end === 'string') {
+	      encoding = end
+	      end = this.length
+	    }
+	    if (val.length === 1) {
+	      var code = val.charCodeAt(0)
+	      if (code < 256) {
+	        val = code
+	      }
+	    }
+	    if (encoding !== undefined && typeof encoding !== 'string') {
+	      throw new TypeError('encoding must be a string')
+	    }
+	    if (typeof encoding === 'string' && !Buffer.isEncoding(encoding)) {
+	      throw new TypeError('Unknown encoding: ' + encoding)
+	    }
+	  } else if (typeof val === 'number') {
+	    val = val & 255
+	  }
+
+	  // Invalid ranges are not set to a default, so can range check early.
+	  if (start < 0 || this.length < start || this.length < end) {
+	    throw new RangeError('Out of range index')
+	  }
+
+	  if (end <= start) {
+	    return this
+	  }
+
+	  start = start >>> 0
+	  end = end === undefined ? this.length : end >>> 0
+
+	  if (!val) val = 0
+
+	  var i
+	  if (typeof val === 'number') {
+	    for (i = start; i < end; ++i) {
+	      this[i] = val
+	    }
+	  } else {
+	    var bytes = Buffer.isBuffer(val)
+	      ? val
+	      : utf8ToBytes(new Buffer(val, encoding).toString())
+	    var len = bytes.length
+	    for (i = 0; i < end - start; ++i) {
+	      this[i + start] = bytes[i % len]
+	    }
+	  }
+
+	  return this
+	}
+
+	// HELPER FUNCTIONS
+	// ================
+
+	var INVALID_BASE64_RE = /[^+\/0-9A-Za-z-_]/g
+
+	function base64clean (str) {
+	  // Node strips out invalid characters like \n and \t from the string, base64-js does not
+	  str = stringtrim(str).replace(INVALID_BASE64_RE, '')
+	  // Node converts strings with length < 2 to ''
+	  if (str.length < 2) return ''
+	  // Node allows for non-padded base64 strings (missing trailing ===), base64-js does not
+	  while (str.length % 4 !== 0) {
+	    str = str + '='
+	  }
+	  return str
+	}
+
+	function stringtrim (str) {
+	  if (str.trim) return str.trim()
+	  return str.replace(/^\s+|\s+$/g, '')
+	}
+
+	function toHex (n) {
+	  if (n < 16) return '0' + n.toString(16)
+	  return n.toString(16)
+	}
+
+	function utf8ToBytes (string, units) {
+	  units = units || Infinity
+	  var codePoint
+	  var length = string.length
+	  var leadSurrogate = null
+	  var bytes = []
+
+	  for (var i = 0; i < length; ++i) {
+	    codePoint = string.charCodeAt(i)
+
+	    // is surrogate component
+	    if (codePoint > 0xD7FF && codePoint < 0xE000) {
+	      // last char was a lead
+	      if (!leadSurrogate) {
+	        // no lead yet
+	        if (codePoint > 0xDBFF) {
+	          // unexpected trail
+	          if ((units -= 3) > -1) bytes.push(0xEF, 0xBF, 0xBD)
+	          continue
+	        } else if (i + 1 === length) {
+	          // unpaired lead
+	          if ((units -= 3) > -1) bytes.push(0xEF, 0xBF, 0xBD)
+	          continue
+	        }
+
+	        // valid lead
+	        leadSurrogate = codePoint
+
+	        continue
+	      }
+
+	      // 2 leads in a row
+	      if (codePoint < 0xDC00) {
+	        if ((units -= 3) > -1) bytes.push(0xEF, 0xBF, 0xBD)
+	        leadSurrogate = codePoint
+	        continue
+	      }
+
+	      // valid surrogate pair
+	      codePoint = (leadSurrogate - 0xD800 << 10 | codePoint - 0xDC00) + 0x10000
+	    } else if (leadSurrogate) {
+	      // valid bmp char, but last char was a lead
+	      if ((units -= 3) > -1) bytes.push(0xEF, 0xBF, 0xBD)
+	    }
+
+	    leadSurrogate = null
+
+	    // encode utf8
+	    if (codePoint < 0x80) {
+	      if ((units -= 1) < 0) break
+	      bytes.push(codePoint)
+	    } else if (codePoint < 0x800) {
+	      if ((units -= 2) < 0) break
+	      bytes.push(
+	        codePoint >> 0x6 | 0xC0,
+	        codePoint & 0x3F | 0x80
+	      )
+	    } else if (codePoint < 0x10000) {
+	      if ((units -= 3) < 0) break
+	      bytes.push(
+	        codePoint >> 0xC | 0xE0,
+	        codePoint >> 0x6 & 0x3F | 0x80,
+	        codePoint & 0x3F | 0x80
+	      )
+	    } else if (codePoint < 0x110000) {
+	      if ((units -= 4) < 0) break
+	      bytes.push(
+	        codePoint >> 0x12 | 0xF0,
+	        codePoint >> 0xC & 0x3F | 0x80,
+	        codePoint >> 0x6 & 0x3F | 0x80,
+	        codePoint & 0x3F | 0x80
+	      )
+	    } else {
+	      throw new Error('Invalid code point')
+	    }
+	  }
+
+	  return bytes
+	}
+
+	function asciiToBytes (str) {
+	  var byteArray = []
+	  for (var i = 0; i < str.length; ++i) {
+	    // Node's code seems to be doing this and not & 0x7F..
+	    byteArray.push(str.charCodeAt(i) & 0xFF)
+	  }
+	  return byteArray
+	}
+
+	function utf16leToBytes (str, units) {
+	  var c, hi, lo
+	  var byteArray = []
+	  for (var i = 0; i < str.length; ++i) {
+	    if ((units -= 2) < 0) break
+
+	    c = str.charCodeAt(i)
+	    hi = c >> 8
+	    lo = c % 256
+	    byteArray.push(lo)
+	    byteArray.push(hi)
+	  }
+
+	  return byteArray
+	}
+
+	function base64ToBytes (str) {
+	  return base64.toByteArray(base64clean(str))
+	}
+
+	function blitBuffer (src, dst, offset, length) {
+	  for (var i = 0; i < length; ++i) {
+	    if ((i + offset >= dst.length) || (i >= src.length)) break
+	    dst[i + offset] = src[i]
+	  }
+	  return i
+	}
+
+	function isnan (val) {
+	  return val !== val // eslint-disable-line no-self-compare
+	}
+
+	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
+
+/***/ }),
+/* 30 */
+/***/ (function(module, exports) {
+
+	'use strict'
+
+	exports.byteLength = byteLength
+	exports.toByteArray = toByteArray
+	exports.fromByteArray = fromByteArray
+
+	var lookup = []
+	var revLookup = []
+	var Arr = typeof Uint8Array !== 'undefined' ? Uint8Array : Array
+
+	var code = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+	for (var i = 0, len = code.length; i < len; ++i) {
+	  lookup[i] = code[i]
+	  revLookup[code.charCodeAt(i)] = i
+	}
+
+	// Support decoding URL-safe base64 strings, as Node.js does.
+	// See: https://en.wikipedia.org/wiki/Base64#URL_applications
+	revLookup['-'.charCodeAt(0)] = 62
+	revLookup['_'.charCodeAt(0)] = 63
+
+	function getLens (b64) {
+	  var len = b64.length
+
+	  if (len % 4 > 0) {
+	    throw new Error('Invalid string. Length must be a multiple of 4')
+	  }
+
+	  // Trim off extra bytes after placeholder bytes are found
+	  // See: https://github.com/beatgammit/base64-js/issues/42
+	  var validLen = b64.indexOf('=')
+	  if (validLen === -1) validLen = len
+
+	  var placeHoldersLen = validLen === len
+	    ? 0
+	    : 4 - (validLen % 4)
+
+	  return [validLen, placeHoldersLen]
+	}
+
+	// base64 is 4/3 + up to two characters of the original data
+	function byteLength (b64) {
+	  var lens = getLens(b64)
+	  var validLen = lens[0]
+	  var placeHoldersLen = lens[1]
+	  return ((validLen + placeHoldersLen) * 3 / 4) - placeHoldersLen
+	}
+
+	function _byteLength (b64, validLen, placeHoldersLen) {
+	  return ((validLen + placeHoldersLen) * 3 / 4) - placeHoldersLen
+	}
+
+	function toByteArray (b64) {
+	  var tmp
+	  var lens = getLens(b64)
+	  var validLen = lens[0]
+	  var placeHoldersLen = lens[1]
+
+	  var arr = new Arr(_byteLength(b64, validLen, placeHoldersLen))
+
+	  var curByte = 0
+
+	  // if there are placeholders, only get up to the last complete 4 chars
+	  var len = placeHoldersLen > 0
+	    ? validLen - 4
+	    : validLen
+
+	  for (var i = 0; i < len; i += 4) {
+	    tmp =
+	      (revLookup[b64.charCodeAt(i)] << 18) |
+	      (revLookup[b64.charCodeAt(i + 1)] << 12) |
+	      (revLookup[b64.charCodeAt(i + 2)] << 6) |
+	      revLookup[b64.charCodeAt(i + 3)]
+	    arr[curByte++] = (tmp >> 16) & 0xFF
+	    arr[curByte++] = (tmp >> 8) & 0xFF
+	    arr[curByte++] = tmp & 0xFF
+	  }
+
+	  if (placeHoldersLen === 2) {
+	    tmp =
+	      (revLookup[b64.charCodeAt(i)] << 2) |
+	      (revLookup[b64.charCodeAt(i + 1)] >> 4)
+	    arr[curByte++] = tmp & 0xFF
+	  }
+
+	  if (placeHoldersLen === 1) {
+	    tmp =
+	      (revLookup[b64.charCodeAt(i)] << 10) |
+	      (revLookup[b64.charCodeAt(i + 1)] << 4) |
+	      (revLookup[b64.charCodeAt(i + 2)] >> 2)
+	    arr[curByte++] = (tmp >> 8) & 0xFF
+	    arr[curByte++] = tmp & 0xFF
+	  }
+
+	  return arr
+	}
+
+	function tripletToBase64 (num) {
+	  return lookup[num >> 18 & 0x3F] +
+	    lookup[num >> 12 & 0x3F] +
+	    lookup[num >> 6 & 0x3F] +
+	    lookup[num & 0x3F]
+	}
+
+	function encodeChunk (uint8, start, end) {
+	  var tmp
+	  var output = []
+	  for (var i = start; i < end; i += 3) {
+	    tmp =
+	      ((uint8[i] << 16) & 0xFF0000) +
+	      ((uint8[i + 1] << 8) & 0xFF00) +
+	      (uint8[i + 2] & 0xFF)
+	    output.push(tripletToBase64(tmp))
+	  }
+	  return output.join('')
+	}
+
+	function fromByteArray (uint8) {
+	  var tmp
+	  var len = uint8.length
+	  var extraBytes = len % 3 // if we have 1 byte left, pad 2 bytes
+	  var parts = []
+	  var maxChunkLength = 16383 // must be multiple of 3
+
+	  // go through the array every three bytes, we'll deal with trailing stuff later
+	  for (var i = 0, len2 = len - extraBytes; i < len2; i += maxChunkLength) {
+	    parts.push(encodeChunk(
+	      uint8, i, (i + maxChunkLength) > len2 ? len2 : (i + maxChunkLength)
+	    ))
+	  }
+
+	  // pad the end with zeros, but make sure to not forget the extra bytes
+	  if (extraBytes === 1) {
+	    tmp = uint8[len - 1]
+	    parts.push(
+	      lookup[tmp >> 2] +
+	      lookup[(tmp << 4) & 0x3F] +
+	      '=='
+	    )
+	  } else if (extraBytes === 2) {
+	    tmp = (uint8[len - 2] << 8) + uint8[len - 1]
+	    parts.push(
+	      lookup[tmp >> 10] +
+	      lookup[(tmp >> 4) & 0x3F] +
+	      lookup[(tmp << 2) & 0x3F] +
+	      '='
+	    )
+	  }
+
+	  return parts.join('')
+	}
+
+
+/***/ }),
+/* 31 */
+/***/ (function(module, exports) {
+
+	exports.read = function (buffer, offset, isLE, mLen, nBytes) {
+	  var e, m
+	  var eLen = (nBytes * 8) - mLen - 1
+	  var eMax = (1 << eLen) - 1
+	  var eBias = eMax >> 1
+	  var nBits = -7
+	  var i = isLE ? (nBytes - 1) : 0
+	  var d = isLE ? -1 : 1
+	  var s = buffer[offset + i]
+
+	  i += d
+
+	  e = s & ((1 << (-nBits)) - 1)
+	  s >>= (-nBits)
+	  nBits += eLen
+	  for (; nBits > 0; e = (e * 256) + buffer[offset + i], i += d, nBits -= 8) {}
+
+	  m = e & ((1 << (-nBits)) - 1)
+	  e >>= (-nBits)
+	  nBits += mLen
+	  for (; nBits > 0; m = (m * 256) + buffer[offset + i], i += d, nBits -= 8) {}
+
+	  if (e === 0) {
+	    e = 1 - eBias
+	  } else if (e === eMax) {
+	    return m ? NaN : ((s ? -1 : 1) * Infinity)
+	  } else {
+	    m = m + Math.pow(2, mLen)
+	    e = e - eBias
+	  }
+	  return (s ? -1 : 1) * m * Math.pow(2, e - mLen)
+	}
+
+	exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
+	  var e, m, c
+	  var eLen = (nBytes * 8) - mLen - 1
+	  var eMax = (1 << eLen) - 1
+	  var eBias = eMax >> 1
+	  var rt = (mLen === 23 ? Math.pow(2, -24) - Math.pow(2, -77) : 0)
+	  var i = isLE ? 0 : (nBytes - 1)
+	  var d = isLE ? 1 : -1
+	  var s = value < 0 || (value === 0 && 1 / value < 0) ? 1 : 0
+
+	  value = Math.abs(value)
+
+	  if (isNaN(value) || value === Infinity) {
+	    m = isNaN(value) ? 1 : 0
+	    e = eMax
+	  } else {
+	    e = Math.floor(Math.log(value) / Math.LN2)
+	    if (value * (c = Math.pow(2, -e)) < 1) {
+	      e--
+	      c *= 2
+	    }
+	    if (e + eBias >= 1) {
+	      value += rt / c
+	    } else {
+	      value += rt * Math.pow(2, 1 - eBias)
+	    }
+	    if (value * c >= 2) {
+	      e++
+	      c /= 2
+	    }
+
+	    if (e + eBias >= eMax) {
+	      m = 0
+	      e = eMax
+	    } else if (e + eBias >= 1) {
+	      m = ((value * c) - 1) * Math.pow(2, mLen)
+	      e = e + eBias
+	    } else {
+	      m = value * Math.pow(2, eBias - 1) * Math.pow(2, mLen)
+	      e = 0
+	    }
+	  }
+
+	  for (; mLen >= 8; buffer[offset + i] = m & 0xff, i += d, m /= 256, mLen -= 8) {}
+
+	  e = (e << mLen) | m
+	  eLen += mLen
+	  for (; eLen > 0; buffer[offset + i] = e & 0xff, i += d, e /= 256, eLen -= 8) {}
+
+	  buffer[offset + i - d] |= s * 128
+	}
+
+
+/***/ }),
+/* 32 */
+/***/ (function(module, exports) {
+
+	var toString = {}.toString;
+
+	module.exports = Array.isArray || function (arr) {
+	  return toString.call(arr) == '[object Array]';
+	};
+
+
+/***/ }),
+/* 33 */
+/***/ (function(module, exports) {
+
+	module.exports = function callHook(vm, hook, options) {
+	  if (!vm) {
+	    return;
+	  }
+	  
+	  var result;
+	  if (vm[hook]) {
+	    result = vm[hook].call(vm, options);
+	  }
+
+	  if (vm._children) {
+	    vm._children.forEach(function (child) {
+	      result = callHook(child, hook, options) || result;
+	    });
+	  }
+
+	  if (hook === 'onUnload') {
+	    var rootVM = vm.$root;
+
+	    rootVM && rootVM.destroy();
+	  }
+
+	  return result;
+	}
+
+/***/ }),
+/* 34 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	const diff = __webpack_require__(18);
+	const _ = __webpack_require__(3);
+	const utils = __webpack_require__(35);
+	const throttle = __webpack_require__(36);
+	const VM = __webpack_require__(27);
+	const DATA_ROOT = '$root';
+	const SPLITTER = ',';
+
+	let time = 0;
+
+	const throttleSetData = throttle((vm) => {
+	  const page = VM.getPage(vm);
+	  const buffer = VM.getBuffer(vm);
+
+	  if (!page || !buffer) {
+	    return;
+	  }
+
+	  const data = buffer.pop();
+	  page.setData(data);
+	}, 50);
+
+	const setData = (vm, data) => {
+	  const buffer = VM.getBuffer(vm);
+	  if (!buffer) {
+	    return;
+	  }
+
+	  buffer.push(data);
+	  throttleSetData(vm);
+	};
+
+	function formatData(vm) {
+	  const page = VM.getPage(vm);
+	  if (!page) {
+	    return;
+	  }
+
+	  const pageData = page.data.$root;
+
+	  const $p = VM.getParentKey(vm).join(SPLITTER);
+	  const localComponentIndex = VM.getLocalComponentIndex(vm);
+	  const $k = ($p ? $p + SPLITTER : '') + localComponentIndex;
+	  const dataKey = DATA_ROOT + '.' + $k;
+	  const vmData = VM.getData(vm);
+
+	  let data = {};
+
+	  data[dataKey] = Object.assign({}, vmData, {
+	    $k: $k,
+	    $kk: $k + SPLITTER,
+	    $p: $p
+	  });
+
+	  delete data[dataKey].$event;
+
+	  try {
+	    const path = dataKey.replace('$root.', '');
+	    if (pageData && pageData[path]) {
+	      const oldData = utils.flatten(pageData[path], 2);
+	      const newData = utils.flatten(data[dataKey], 2);
+	      data = utils.getDiffProperty(newData, oldData, dataKey);
+	      data = utils.addPrefixToProperty(data, `${dataKey}.`);
+	    }
+	  } catch(err) {
+	    console.error('diff error', err)
+	  }
+
+	  return data;
+	}
+
+
+	function updateData(vm, data) {
+	  vm = vm || this;
+	  const rootVM = vm.$root;
+	  const page = VM.getPage(vm);
+
+	  if (page) {
+	    if (vm === rootVM) {
+	      updateAllData(vm);
+	    } else {
+	      data = data || formatData(vm);
+	      data && setData(vm, data);
+	    }
+	  }
+	}
+
+	function collectData(vm, res = {}) {
+	  const children = vm._children;
+	  if (children) {
+	    children.forEach(function(c) {
+	      collectData(c, res);
+	    });
+	  }
+	  return Object.assign(res, formatData(vm));
+	}
+
+	function updateAllData(vm) {
+	  const page = VM.getPage(vm);
+	  if (!page) {
+	    return;
+	  }
+
+	  const data = collectData(vm);
+	  const updatedData = Object.keys(data)
+	    .reduce((res, path) => {
+	      res[path] = data[path];
+	      return res;
+	    }, {});
+
+	  setData(vm, updatedData);
+	}
+
+	function initDataToMP(vm) {
+	  const data = collectData(vm);
+	  setData(vm, data);
+	}
+
+	function updateHolders(value, options = {}) {
+	  const key = options.key || '__holders';
+	  const id = options.id || '0';
+	  if (!this[key]) {
+	    this[key] = {};
+	  }
+
+	  const keys = [id];
+	  const extra = options.extra || {};
+	  if (extra.__listInfo__) {
+	    const listIndexArray = _.getListIndexArray(extra);
+	    if (listIndexArray.length > 0) {
+	      keys.push(listIndexArray.join('-'));
+	    }
+	  }
+	  const parsedKey = keys.join('-');
+
+	  this[key][parsedKey] = value;
+	}
+
+	module.exports = {
+	  updateData,
+	  initDataToMP,
+	  updateHolders
+	};
+
+/***/ }),
+/* 35 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	var _ = __webpack_require__(3);
+
+	var utils = {};
+
+	function diff(pre, cur, maxDep = 5, dep = 1) {
+	  if (dep > maxDep) {
+	    return true;
+	  }
+
+	  if (pre !== cur && (pre == undefined || cur == undefined)) {
+	    return true;
+	  }
+
+	  if (pre === cur && pre == undefined ) {
+	    return false;
+	  }
+
+	  const curType = _.typeOf(cur);
+	  const preType = _.typeOf(pre);
+
+	  if (curType !== preType) {
+	    return true;
+	  }
+
+	  if (curType !== 'array' && curType !== 'object') {
+	    return cur !== pre;
+	  }
+
+	  var preKeys = _.keys(pre);
+	  var curKeys = _.keys(cur);
+
+	  if (curKeys.length !== preKeys.length) {
+	    return true;
+	  }
+
+	  for (var i = 0; i < preKeys.length; ++i) {
+	    var k = preKeys[i];
+
+	    var type = typeof cur[k];
+	   
+	    if (type !== 'object' && cur[k] !== pre[k]) {
+	      return true;
+	    }
+
+	    if (type === 'object' && diff(pre[k], cur[k], maxDep, dep + 1)) {
+	      return true;
+	    }
+	  }
+
+	  return false;
+	}
+
+	function addPrefixToProperty(obj, prefix) {
+	  return Object.keys(obj).reduce((res, k) => {
+	    res[`${prefix}${k}`] = obj[k];
+	    return res;
+	  }, {});
+	}
+
+	function getDiffProperty(newData, oldData, path) {
+	  const keys = _.keys(newData);
+
+	  const temp = keys.reduce((res, k) => {
+	    if (diff(newData[k], oldData[k])) {
+	      res[`${k}`] = newData[k] || '';
+	    }
+	    return res;
+	  }, {});
+
+	  return temp;
+	}
+	function composePrefix(prefix, key) {
+	    if(_.typeOf(key) === 'number' && /^\d*$/.test(key)) {
+	        return [prefix, `[${key}]`].filter(str => str).join('');
+	    } else if(/^[^a-zA-Z_$]|[^0-9a-zA-Z_$]/.test(key)) {
+	        return [prefix, `.${key}`].filter(str => str).join('');
+	    }
+	    return [prefix, `${key}`].filter(str => str).join('.');
+	}
+
+	function flatten(obj, maxDep = 1) {
+	    if (obj === undefined || obj === null) {
+	        return obj;
+	    }
+	    const result = {};
+	    function flat(obj, prefix = '', dep = 1) {
+	        if (Object.keys(obj).length === 0) {
+	            result[composePrefix('', prefix)] = '';
+	        }
+
+	        for(let key in obj) {
+	            if (!obj.hasOwnProperty(key)) {
+	                continue;
+	            }
+	            const composeKey = composePrefix(prefix, key)
+
+	            let val = obj[key];
+
+	            if (dep >= maxDep) {
+	              result[composeKey] = val;
+	              continue;
+	            }
+
+	            let valType = _.typeOf(val);
+
+	            switch (valType) {
+	                case 'object':
+	                case 'array':
+	                    flat(val, composeKey, dep + 1);
+	                    break;
+	                default:
+	                    result[composeKey] = val;
+	                    break;
+	            }
+	        }
+	    }
+
+	    flat(obj);
+
+	    return result;
+	}
+
+	module.exports = {
+	  diff,
+	  flatten,
+	  addPrefixToProperty,
+	  getDiffProperty
+	};
+
+/***/ }),
+/* 36 */
+/***/ (function(module, exports) {
+
+	/**
+	 * 频率控制 返回函数连续调用时，func 执行频率限定为 次 / wait
+	 *
+	 * @param  {function}   func      传入函数
+	 * @param  {number}     wait      表示时间窗口的间隔
+	 * @param  {object}     [options] 如果想忽略开始边界上的调用，传入{leading: false}。
+	 * @param  {boolean}    [options.leading=true] 如果想忽略开始边界上的调用，传入{leading: false}。
+	 * @param  {boolean}    [options.trailing=true] 如果想忽略结尾边界上的调用，传入{trailing: false}
+	 *
+	 * @return {Function}
+	 *
+	 * @example
+	 * const throttleCallback = throttle(callback, 100);
+	 *
+	 */
+	module.exports = function throttle(func, wait, options = {}) {
+	    let context, args, result;
+	    let timeout = null;
+	    // 上次执行时间点
+	    let previous = 0;
+	    // 延迟执行函数
+	    let later = function() {
+	        // 若设定了开始边界不执行选项，上次执行时间始终为0
+	        previous = options.leading === false ? 0 : (+new Date());
+	        timeout = null;
+	        // $flow-disable-line
+	        result = func.apply(context, args);
+	        if (!timeout) {
+	            context = args = null;
+	        }
+	    };
+	    return function() {
+	        let now = (+new Date());
+	        // 首次执行时，如果设定了开始边界不执行选项，将上次执行时间设定为当前时间。
+	        if (!previous && options.leading === false) {
+	            previous = now;
+	        }
+	        // 延迟执行时间间隔
+	        let remaining = wait - (now - previous);
+	        context = this;
+	        args = arguments; // eslint-disable-line
+	        // 延迟时间间隔remaining小于等于0，表示上次执行至此所间隔时间已经超过一个时间窗口
+	        // remaining大于时间窗口wait，表示客户端系统时间被调整过
+	        if (remaining <= 0 || remaining > wait) {
+	            clearTimeout(timeout);
+	            timeout = null;
+	            previous = now;
+	            result = func.apply(context, args);
+	            if (!timeout) {
+	                context = args = null;
+	            }
+	        //如果延迟执行不存在，且没有设定结尾边界不执行选项
+	        } else if (!timeout && options.trailing !== false) {
+	            timeout = setTimeout(later, remaining);
+	        }
+	        return result;
+	    };
+	};
+
+
+/***/ }),
+/* 37 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	var wxParse = __webpack_require__(38);
+
+	module.exports = {
+	  init() {
+	    var root = this.$root;
+	    if (!root.__useRHtml) {
+	      root.__useRHtml = true;
+	    }
+	  },
+	  install(vm) {
+	    if (!vm || !vm.$root || !vm.$root.$mp) {
+	      return;
+	    }
+	    
+	    var root = vm.$root;
+	    var page = root.$mp && root.$mp.page;
+	    page.wxParseImgLoad = function(e) {
+	      // wxParse.wxParseImgLoad();
+	      root.onWxParseImgLoad && root.onWxParseImgLoad(e)
+	    }
+	    page.wxParseImgTap = function(e) {
+	      root.onWxParseImgTap && root.onWxParseImgTap(e)
+	      // wxParse.wxParseImgTap.call(page, e)
+	    };
+	  }
+
+	}
+
+/***/ }),
+/* 38 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	/**
+	 * author: Di (微信小程序开发工程师)
+	 * organization: WeAppDev(微信小程序开发论坛)(http://weappdev.com)
+	 *               垂直微信小程序开发交流社区
+	 * 
+	 * github地址: https://github.com/icindy/wxParse
+	 * 
+	 * for: 微信小程序富文本解析
+	 * detail : http://weappdev.com/t/wxparse-alpha0-1-html-markdown/184
+	 */
+
+	/**
+	 * utils函数引入
+	 **/
+	// var showdown = require('./showdown.js');
+	var HtmlToJson = __webpack_require__(39);
+	/**
+	 * 配置及公有属性
+	 **/
+	var realWindowWidth = 0;
+	var realWindowHeight = 0;
+	wx.getSystemInfo({
+	  success: function (res) {
+	    realWindowWidth = res.windowWidth
+	    realWindowHeight = res.windowHeight
+	  }
+	})
+	/**
+	 * 主函数入口区
+	 **/
+	function wxParse(bindName = 'wxParseData', type='html', data='<div class="color:red;">数据不能为空</div>', target,imagePadding) {
+	  // var that = target;
+	  var transData = {};//存放转化后的数据
+	  if (type == 'html') {
+	    transData = HtmlToJson.html2json(data, bindName);
+	    // console.log(JSON.stringify(transData, ' ', ' '));
+	  } else if (type == 'md' || type == 'markdown') {
+	    // var converter = new showdown.Converter();
+	    // var html = converter.makeHtml(data);
+	    // transData = HtmlToJson.html2json(html, bindName);
+	    // console.log(JSON.stringify(transData, ' ', ' '));
+	  }
+	  transData.view = {};
+	  transData.view.imagePadding = 0;
+	  if(typeof(imagePadding) != 'undefined'){
+	    transData.view.imagePadding = imagePadding
+	  }
+
+	  return transData;
+	  // var bindData = {};
+	  // bindData[bindName] = transData;
+	  // that.setData(bindData)
+	  // that.wxParseImgLoad = wxParseImgLoad;
+	  // that.wxParseImgTap = wxParseImgTap;
+	}
+	// 图片点击事件
+	function wxParseImgTap(e) {
+	  var that = this;
+	  var dataSet = e.target.dataset;
+	  if (!dataSet.preview) {
+	    return;
+	  }
+	  var nowImgUrl = e.target.dataset.src;
+	  var tagFrom = e.target.dataset.from;
+	  if (typeof (tagFrom) != 'undefined' && tagFrom.length > 0) {
+	    wx.previewImage({
+	      current: nowImgUrl, // 当前显示图片的http链接
+	      urls: [ nowImgUrl ],
+	      // that.data[tagFrom].imageUrls // 需要预览的图片http链接列表
+	    })
+	  }
+	}
+
+	/**
+	 * 图片视觉宽高计算函数区 
+	 **/
+	function wxParseImgLoad(e) {
+	  var that = this;
+	  var tagFrom = e.target.dataset.from;
+	  var idx = e.target.dataset.idx;
+	  if (typeof (tagFrom) != 'undefined' && tagFrom.length > 0) {
+	    calMoreImageInfo(e, idx, that, tagFrom)
+	  } 
+	}
+	// 假循环获取计算图片视觉最佳宽高
+	function calMoreImageInfo(e, idx, that, bindName) {
+	  var temData = that.data[bindName];
+	  if (!temData || temData.images.length == 0) {
+	    return;
+	  }
+	  var temImages = temData.images;
+	  //因为无法获取view宽度 需要自定义padding进行计算，稍后处理
+	  var recal = wxAutoImageCal(e.detail.width, e.detail.height,that,bindName); 
+	  // temImages[idx].width = recal.imageWidth;
+	  // temImages[idx].height = recal.imageheight; 
+	  // temData.images = temImages;
+	  // var bindData = {};
+	  // bindData[bindName] = temData;
+	  // that.setData(bindData);
+	  var index = temImages[idx].index
+	  var key = `${bindName}`
+	  for (var i of index.split('.')) key+=`.nodes[${i}]`
+	  var keyW = key + '.width'
+	  var keyH = key + '.height'
+	  that.setData({
+	    [keyW]: recal.imageWidth,
+	    [keyH]: recal.imageheight,
+	  })
+	}
+
+	// 计算视觉优先的图片宽高
+	function wxAutoImageCal(originalWidth, originalHeight,that,bindName) {
+	  //获取图片的原始长宽
+	  var windowWidth = 0, windowHeight = 0;
+	  var autoWidth = 0, autoHeight = 0;
+	  var results = {};
+	  var padding = that.data[bindName].view.imagePadding;
+	  windowWidth = realWindowWidth-2*padding;
+	  windowHeight = realWindowHeight;
+	  //判断按照那种方式进行缩放
+	  // console.log("windowWidth" + windowWidth);
+	  if (originalWidth > windowWidth) {//在图片width大于手机屏幕width时候
+	    autoWidth = windowWidth;
+	    // console.log("autoWidth" + autoWidth);
+	    autoHeight = (autoWidth * originalHeight) / originalWidth;
+	    // console.log("autoHeight" + autoHeight);
+	    results.imageWidth = autoWidth;
+	    results.imageheight = autoHeight;
+	  } else {//否则展示原来的数据
+	    results.imageWidth = originalWidth;
+	    results.imageheight = originalHeight;
+	  }
+	  return results;
+	}
+
+	// function wxParseTemArray(temArrayName,bindNameReg,total,that){
+	//   var array = [];
+	//   var temData = that.data;
+	//   var obj = null;
+	//   for(var i = 0; i < total; i++){
+	//     var simArr = temData[bindNameReg+i].nodes;
+	//     array.push(simArr);
+	//   }
+
+	//   temArrayName = temArrayName || 'wxParseTemArray';
+	//   obj = JSON.parse('{"'+ temArrayName +'":""}');
+	//   obj[temArrayName] = array;
+	//   that.setData(obj);
+	// }
+
+	/**
+	 * 配置emojis
+	 * 
+	 */
+
+	// function emojisInit(reg='',baseSrc="/wxParse/emojis/",emojis){
+	//    HtmlToJson.emojisInit(reg,baseSrc,emojis);
+	// }
+
+	module.exports = {
+	  wxParse,
+	  // emojisInit,
+	  wxParseImgLoad,
+	  wxParseImgTap,
+	}
+
+
+
+
+/***/ }),
+/* 39 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	/**
+	 * html2Json 改造来自: https://github.com/Jxck/html2json
+	 * 
+	 * 
+	 * author: Di (微信小程序开发工程师)
+	 * organization: WeAppDev(微信小程序开发论坛)(http://weappdev.com)
+	 *               垂直微信小程序开发交流社区
+	 * 
+	 * github地址: https://github.com/icindy/wxParse
+	 * 
+	 * for: 微信小程序富文本解析
+	 * detail : http://weappdev.com/t/wxparse-alpha0-1-html-markdown/184
+	 */
+
+	var __placeImgeUrlHttps = "https";
+	var __emojisReg = '';
+	var __emojisBaseSrc = '';
+	var __emojis = {};
+	var wxDiscode = __webpack_require__(40);
+	var HTMLParser = __webpack_require__(41);
+	// Empty Elements - HTML 5
+	var empty = makeMap("area,base,basefont,br,col,frame,hr,img,input,link,meta,param,embed,command,keygen,source,track,wbr");
+	// Block Elements - HTML 5
+	var block = makeMap("br,a,code,address,article,applet,aside,audio,blockquote,button,canvas,center,dd,del,dir,div,dl,dt,fieldset,figcaption,figure,footer,form,frameset,h1,h2,h3,h4,h5,h6,header,hgroup,hr,iframe,ins,isindex,li,map,menu,noframes,noscript,object,ol,output,p,pre,section,script,table,tbody,td,tfoot,th,thead,tr,ul,video");
+
+	// Inline Elements - HTML 5
+	var inline = makeMap("abbr,acronym,applet,b,basefont,bdo,big,button,cite,del,dfn,em,font,i,iframe,img,input,ins,kbd,label,map,object,q,s,samp,script,select,small,span,strike,strong,sub,sup,textarea,tt,u,var");
+
+	// Elements that you can, intentionally, leave open
+	// (and which close themselves)
+	var closeSelf = makeMap("colgroup,dd,dt,li,options,p,td,tfoot,th,thead,tr");
+
+	// Attributes that have their values filled in disabled="disabled"
+	var fillAttrs = makeMap("checked,compact,declare,defer,disabled,ismap,multiple,nohref,noresize,noshade,nowrap,readonly,selected");
+
+	// Special Elements (can contain anything)
+	var special = makeMap("wxxxcode-style,script,style,view,scroll-view,block");
+	function makeMap(str) {
+	    var obj = {}, items = str.split(",");
+	    for (var i = 0; i < items.length; i++)
+	        obj[items[i]] = true;
+	    return obj;
+	}
+
+	function q(v) {
+	    return '"' + v + '"';
+	}
+
+	function removeDOCTYPE(html) {
+	    return html
+	        .replace(/<\?xml.*\?>\n/, '')
+	        .replace(/<.*!doctype.*\>\n/, '')
+	        .replace(/<.*!DOCTYPE.*\>\n/, '');
+	}
+
+	function trimHtml(html) {
+	  return html
+	        .replace(/\r?\n+/g, '')
+	        .replace(/<!--.*?-->/ig, '')
+	        .replace(/\/\*.*?\*\//ig, '')
+	        .replace(/[ ]+</ig, '<')
+	}
+
+
+	function html2json(html, bindName) {
+	    //处理字符串
+	    html = removeDOCTYPE(html);
+	    html = trimHtml(html);
+	    html = wxDiscode.strDiscode(html);
+	    //生成node节点
+	    var bufArray = [];
+	    var results = {
+	        node: bindName,
+	        nodes: [],
+	        images:[],
+	        imageUrls:[]
+	    };
+	    var index = 0;
+	    HTMLParser(html, {
+	        start: function (tag, attrs, unary) {
+	            //debug(tag, attrs, unary);
+	            // node for this element
+	            var node = {
+	                node: 'element',
+	                tag: tag,
+	            };
+
+	            if (bufArray.length === 0) {
+	                node.index = index.toString()
+	                index += 1
+	            } else {
+	                var parent = bufArray[0];
+	                if (parent.nodes === undefined) {
+	                    parent.nodes = [];
+	                }
+	                node.index = parent.index + '.' + parent.nodes.length
+	            }
+
+	            if (block[tag]) {
+	                node.tagType = "block";
+	            } else if (inline[tag]) {
+	                node.tagType = "inline";
+	            } else if (closeSelf[tag]) {
+	                node.tagType = "closeSelf";
+	            }
+
+	            if (attrs.length !== 0) {
+	                node.attr = attrs.reduce(function (pre, attr) {
+	                    var name = attr.name;
+	                    var value = attr.value;
+	                    if (name == 'class') {
+	                        // console.dir(value);
+	                        //  value = value.join("")
+	                        node.classStr = value;
+	                    }
+	                    // has multi attibutes
+	                    // make it array of attribute
+	                    if (name == 'style') {
+	                        // console.dir(value);
+	                        //  value = value.join("")
+	                        node.styleStr = value;
+	                    }
+	                    if (value.match(/ /)) {
+	                        value = value.split(' ');
+	                    }
+	                    
+
+	                    // if attr already exists
+	                    // merge it
+	                    if (pre[name]) {
+	                        if (Array.isArray(pre[name])) {
+	                            // already array, push to last
+	                            pre[name].push(value);
+	                        } else {
+	                            // single value, make it array
+	                            pre[name] = [pre[name], value];
+	                        }
+	                    } else {
+	                        // not exist, put it
+	                        pre[name] = value;
+	                    }
+
+	                    return pre;
+	                }, {});
+	            }
+
+	            //对img添加额外数据
+	            if (node.tag === 'img') {
+	                node.imgIndex = results.images.length;
+	                var imgUrl = node.attr.src;
+	                if (imgUrl[0] == '') {
+	                    imgUrl.splice(0, 1);
+	                }
+	                imgUrl = wxDiscode.urlToHttpUrl(imgUrl, __placeImgeUrlHttps);
+	                node.attr.src = imgUrl;
+	                node.from = bindName;
+	                results.images.push(node);
+	                results.imageUrls.push(imgUrl);
+	            }
+	            
+	            // 处理font标签样式属性
+	            if (node.tag === 'font') {
+	                var fontSize = ['x-small', 'small', 'medium', 'large', 'x-large', 'xx-large', '-webkit-xxx-large'];
+	                var styleAttrs = {
+	                    'color': 'color',
+	                    'face': 'font-family',
+	                    'size': 'font-size'
+	                };
+	                if (!node.attr.style) node.attr.style = [];
+	                if (!node.styleStr) node.styleStr = '';
+	                for (var key in styleAttrs) {
+	                    if (node.attr[key]) {
+	                        var value = key === 'size' ? fontSize[node.attr[key]-1] : node.attr[key];
+	                        node.attr.style.push(styleAttrs[key]);
+	                        node.attr.style.push(value);
+	                        node.styleStr += styleAttrs[key] + ': ' + value + ';';
+	                    }
+	                }
+	            }
+
+	            //临时记录source资源
+	            if(node.tag === 'source'){
+	                results.source = node.attr.src;
+	            }
+	            
+	            if (unary) {
+	                // if this tag doesn't have end tag
+	                // like <img src="hoge.png"/>
+	                // add to parents
+	                var parent = bufArray[0] || results;
+	                if (parent.nodes === undefined) {
+	                    parent.nodes = [];
+	                }
+	                parent.nodes.push(node);
+	            } else {
+	                bufArray.unshift(node);
+	            }
+	        },
+	        end: function (tag) {
+	            //debug(tag);
+	            // merge into parent tag
+	            var node = bufArray.shift();
+	            if (node.tag !== tag) console.error('invalid state: mismatch end tag');
+
+	            //当有缓存source资源时于于video补上src资源
+	            if(node.tag === 'video' && results.source){
+	                node.attr.src = results.source;
+	                delete results.source;
+	            }
+	            
+	            if (bufArray.length === 0) {
+	                results.nodes.push(node);
+	            } else {
+	                var parent = bufArray[0];
+	                if (parent.nodes === undefined) {
+	                    parent.nodes = [];
+	                }
+	                parent.nodes.push(node);
+	            }
+	        },
+	        chars: function (text) {
+	            //debug(text);
+	            var node = {
+	                node: 'text',
+	                text: text,
+	                textArray:transEmojiStr(text)
+	            };
+	            
+	            if (bufArray.length === 0) {
+	                node.index = index.toString()
+	                index += 1
+	                results.nodes.push(node);
+	            } else {
+	                var parent = bufArray[0];
+	                if (parent.nodes === undefined) {
+	                    parent.nodes = [];
+	                }
+	                node.index = parent.index + '.' + parent.nodes.length
+	                parent.nodes.push(node);
+	            }
+	        },
+	        comment: function (text) {
+	            //debug(text);
+	            // var node = {
+	            //     node: 'comment',
+	            //     text: text,
+	            // };
+	            // var parent = bufArray[0];
+	            // if (parent.nodes === undefined) {
+	            //     parent.nodes = [];
+	            // }
+	            // parent.nodes.push(node);
+	        },
+	    });
+	    return results;
+	};
+
+	function transEmojiStr(str){
+	  // var eReg = new RegExp("["+__reg+' '+"]");
+	//   str = str.replace(/\[([^\[\]]+)\]/g,':$1:')
+	  var array = [];
+	  var emojiObjs = [];
+	  //如果正则表达式为空
+	  if(__emojisReg.length == 0 || !__emojis){
+	      var emojiObj = {}
+	      emojiObj.node = "text";
+	      emojiObj.text = str;
+	      array = [emojiObj];
+	      return array;
+	  }
+	//   //这个地方需要调整
+	//   str = str.replace(/\[([^\[\]]+)\]/g,':$1:')
+	//   var eReg = new RegExp("[:]");
+	//   var array = str.split(eReg);
+	//   for(var i = 0; i < array.length; i++){
+	//     var ele = array[i];
+	//     var emojiObj = {};
+	//     if(__emojis[ele]){
+	//       emojiObj.node = "element";
+	//       emojiObj.tag = "emoji";
+	//       emojiObj.text = __emojis[ele];
+	//       emojiObj.baseSrc= __emojisBaseSrc;
+	//     }else{
+	//       emojiObj.node = "text";
+	//       emojiObj.text = ele;
+	//     }
+	//     emojiObjs.push(emojiObj);
+	//   }
+	  
+	//   return emojiObjs;
+	}
+
+	// function emojisInit(reg='',baseSrc="/wxParse/emojis/",emojis){
+	//     __emojisReg = reg;
+	//     __emojisBaseSrc=baseSrc;
+	//     __emojis=emojis;
+	// }
+
+	module.exports = {
+	    html2json: html2json,
+	    // emojisInit:emojisInit
+	};
+
+
+
+/***/ }),
+/* 40 */
+/***/ (function(module, exports) {
+
+	// HTML 支持的数学符号
+	function strNumDiscode(str){
+	    str = str.replace(/&forall;/g, '∀');
+	    str = str.replace(/&part;/g, '∂');
+	    str = str.replace(/&exists;/g, '∃');
+	    str = str.replace(/&empty;/g, '∅');
+	    str = str.replace(/&nabla;/g, '∇');
+	    str = str.replace(/&isin;/g, '∈');
+	    str = str.replace(/&notin;/g, '∉');
+	    str = str.replace(/&ni;/g, '∋');
+	    str = str.replace(/&prod;/g, '∏');
+	    str = str.replace(/&sum;/g, '∑');
+	    str = str.replace(/&minus;/g, '−');
+	    str = str.replace(/&lowast;/g, '∗');
+	    str = str.replace(/&radic;/g, '√');
+	    str = str.replace(/&prop;/g, '∝');
+	    str = str.replace(/&infin;/g, '∞');
+	    str = str.replace(/&ang;/g, '∠');
+	    str = str.replace(/&and;/g, '∧');
+	    str = str.replace(/&or;/g, '∨');
+	    str = str.replace(/&cap;/g, '∩');
+	    str = str.replace(/&cap;/g, '∪');
+	    str = str.replace(/&int;/g, '∫');
+	    str = str.replace(/&there4;/g, '∴');
+	    str = str.replace(/&sim;/g, '∼');
+	    str = str.replace(/&cong;/g, '≅');
+	    str = str.replace(/&asymp;/g, '≈');
+	    str = str.replace(/&ne;/g, '≠');
+	    str = str.replace(/&le;/g, '≤');
+	    str = str.replace(/&ge;/g, '≥');
+	    str = str.replace(/&sub;/g, '⊂');
+	    str = str.replace(/&sup;/g, '⊃');
+	    str = str.replace(/&nsub;/g, '⊄');
+	    str = str.replace(/&sube;/g, '⊆');
+	    str = str.replace(/&supe;/g, '⊇');
+	    str = str.replace(/&oplus;/g, '⊕');
+	    str = str.replace(/&otimes;/g, '⊗');
+	    str = str.replace(/&perp;/g, '⊥');
+	    str = str.replace(/&sdot;/g, '⋅');
+	    return str;
+	}
+
+	//HTML 支持的希腊字母
+	function strGreeceDiscode(str){
+	    str = str.replace(/&Alpha;/g, 'Α');
+	    str = str.replace(/&Beta;/g, 'Β');
+	    str = str.replace(/&Gamma;/g, 'Γ');
+	    str = str.replace(/&Delta;/g, 'Δ');
+	    str = str.replace(/&Epsilon;/g, 'Ε');
+	    str = str.replace(/&Zeta;/g, 'Ζ');
+	    str = str.replace(/&Eta;/g, 'Η');
+	    str = str.replace(/&Theta;/g, 'Θ');
+	    str = str.replace(/&Iota;/g, 'Ι');
+	    str = str.replace(/&Kappa;/g, 'Κ');
+	    str = str.replace(/&Lambda;/g, 'Λ');
+	    str = str.replace(/&Mu;/g, 'Μ');
+	    str = str.replace(/&Nu;/g, 'Ν');
+	    str = str.replace(/&Xi;/g, 'Ν');
+	    str = str.replace(/&Omicron;/g, 'Ο');
+	    str = str.replace(/&Pi;/g, 'Π');
+	    str = str.replace(/&Rho;/g, 'Ρ');
+	    str = str.replace(/&Sigma;/g, 'Σ');
+	    str = str.replace(/&Tau;/g, 'Τ');
+	    str = str.replace(/&Upsilon;/g, 'Υ');
+	    str = str.replace(/&Phi;/g, 'Φ');
+	    str = str.replace(/&Chi;/g, 'Χ');
+	    str = str.replace(/&Psi;/g, 'Ψ');
+	    str = str.replace(/&Omega;/g, 'Ω');
+
+	    str = str.replace(/&alpha;/g, 'α');
+	    str = str.replace(/&beta;/g, 'β');
+	    str = str.replace(/&gamma;/g, 'γ');
+	    str = str.replace(/&delta;/g, 'δ');
+	    str = str.replace(/&epsilon;/g, 'ε');
+	    str = str.replace(/&zeta;/g, 'ζ');
+	    str = str.replace(/&eta;/g, 'η');
+	    str = str.replace(/&theta;/g, 'θ');
+	    str = str.replace(/&iota;/g, 'ι');
+	    str = str.replace(/&kappa;/g, 'κ');
+	    str = str.replace(/&lambda;/g, 'λ');
+	    str = str.replace(/&mu;/g, 'μ');
+	    str = str.replace(/&nu;/g, 'ν');
+	    str = str.replace(/&xi;/g, 'ξ');
+	    str = str.replace(/&omicron;/g, 'ο');
+	    str = str.replace(/&pi;/g, 'π');
+	    str = str.replace(/&rho;/g, 'ρ');
+	    str = str.replace(/&sigmaf;/g, 'ς');
+	    str = str.replace(/&sigma;/g, 'σ');
+	    str = str.replace(/&tau;/g, 'τ');
+	    str = str.replace(/&upsilon;/g, 'υ');
+	    str = str.replace(/&phi;/g, 'φ');
+	    str = str.replace(/&chi;/g, 'χ');
+	    str = str.replace(/&psi;/g, 'ψ');
+	    str = str.replace(/&omega;/g, 'ω');
+	    str = str.replace(/&thetasym;/g, 'ϑ');
+	    str = str.replace(/&upsih;/g, 'ϒ');
+	    str = str.replace(/&piv;/g, 'ϖ');
+	    str = str.replace(/&middot;/g, '·');
+	    return str;
+	}
+
+	// 
+
+	function strcharacterDiscode(str){
+	    // 加入常用解析
+	    str = str.replace(/&nbsp;/g, ' ');
+	    str = str.replace(/&quot;/g, "'");
+	    str = str.replace(/&amp;/g, '&');
+	    // str = str.replace(/&lt;/g, '‹');
+	    // str = str.replace(/&gt;/g, '›');
+
+	    str = str.replace(/&lt;/g, '<');
+	    str = str.replace(/&gt;/g, '>');
+	    str = str.replace(/&#8226;/g, '•');
+
+	    return str;
+	}
+
+	// HTML 支持的其他实体
+	function strOtherDiscode(str){
+	    str = str.replace(/&OElig;/g, 'Œ');
+	    str = str.replace(/&oelig;/g, 'œ');
+	    str = str.replace(/&Scaron;/g, 'Š');
+	    str = str.replace(/&scaron;/g, 'š');
+	    str = str.replace(/&Yuml;/g, 'Ÿ');
+	    str = str.replace(/&fnof;/g, 'ƒ');
+	    str = str.replace(/&circ;/g, 'ˆ');
+	    str = str.replace(/&tilde;/g, '˜');
+	    str = str.replace(/&ensp;/g, '');
+	    str = str.replace(/&emsp;/g, '');
+	    str = str.replace(/&thinsp;/g, '');
+	    str = str.replace(/&zwnj;/g, '');
+	    str = str.replace(/&zwj;/g, '');
+	    str = str.replace(/&lrm;/g, '');
+	    str = str.replace(/&rlm;/g, '');
+	    str = str.replace(/&ndash;/g, '–');
+	    str = str.replace(/&mdash;/g, '—');
+	    str = str.replace(/&lsquo;/g, '‘');
+	    str = str.replace(/&rsquo;/g, '’');
+	    str = str.replace(/&sbquo;/g, '‚');
+	    str = str.replace(/&ldquo;/g, '“');
+	    str = str.replace(/&rdquo;/g, '”');
+	    str = str.replace(/&bdquo;/g, '„');
+	    str = str.replace(/&dagger;/g, '†');
+	    str = str.replace(/&Dagger;/g, '‡');
+	    str = str.replace(/&bull;/g, '•');
+	    str = str.replace(/&hellip;/g, '…');
+	    str = str.replace(/&permil;/g, '‰');
+	    str = str.replace(/&prime;/g, '′');
+	    str = str.replace(/&Prime;/g, '″');
+	    str = str.replace(/&lsaquo;/g, '‹');
+	    str = str.replace(/&rsaquo;/g, '›');
+	    str = str.replace(/&oline;/g, '‾');
+	    str = str.replace(/&euro;/g, '€');
+	    str = str.replace(/&trade;/g, '™');
+
+	    str = str.replace(/&larr;/g, '←');
+	    str = str.replace(/&uarr;/g, '↑');
+	    str = str.replace(/&rarr;/g, '→');
+	    str = str.replace(/&darr;/g, '↓');
+	    str = str.replace(/&harr;/g, '↔');
+	    str = str.replace(/&crarr;/g, '↵');
+	    str = str.replace(/&lceil;/g, '⌈');
+	    str = str.replace(/&rceil;/g, '⌉');
+
+	    str = str.replace(/&lfloor;/g, '⌊');
+	    str = str.replace(/&rfloor;/g, '⌋');
+	    str = str.replace(/&loz;/g, '◊');
+	    str = str.replace(/&spades;/g, '♠');
+	    str = str.replace(/&clubs;/g, '♣');
+	    str = str.replace(/&hearts;/g, '♥');
+
+	    str = str.replace(/&diams;/g, '♦');
+	    str = str.replace(/&#39;/g, '\'');
+	    return str;
+	}
+
+	function strMoreDiscode(str){
+	    str = str.replace(/\r\n/g,"");  
+	    str = str.replace(/\n/g,"");
+
+	    str = str.replace(/code/g,"wxxxcode-style");
+	    return str;
+	}
+
+	function strDiscode(str){
+	    str = strNumDiscode(str);
+	    str = strGreeceDiscode(str);
+	    str = strcharacterDiscode(str);
+	    str = strOtherDiscode(str);
+	    str = strMoreDiscode(str);
+	    return str;
+	}
+	function urlToHttpUrl(url,rep){
+	    
+	    var patt1 = new RegExp("^//");
+	    var result = patt1.test(url);
+	    if(result){
+	        url = rep+":"+url;
+	    }
+	    return  url;
+	}
+
+	module.exports = {
+	    strDiscode:strDiscode,
+	    urlToHttpUrl:urlToHttpUrl
+	}
+
+/***/ }),
+/* 41 */
+/***/ (function(module, exports) {
+
+	/**
+	 * 
+	 * htmlParser改造自: https://github.com/blowsie/Pure-JavaScript-HTML5-Parser
+	 * 
+	 * author: Di (微信小程序开发工程师)
+	 * organization: WeAppDev(微信小程序开发论坛)(http://weappdev.com)
+	 *               垂直微信小程序开发交流社区
+	 * 
+	 * github地址: https://github.com/icindy/wxParse
+	 * 
+	 * for: 微信小程序富文本解析
+	 * detail : http://weappdev.com/t/wxparse-alpha0-1-html-markdown/184
+	 */
+	// Regular Expressions for parsing tags and attributes
+	var startTag = /^<([-A-Za-z0-9_]+)((?:\s+[a-zA-Z_:][-a-zA-Z0-9_:.]*(?:\s*=\s*(?:(?:"[^"]*")|(?:'[^']*')|[^>\s]+))?)*)\s*(\/?)>/,
+		endTag = /^<\/([-A-Za-z0-9_]+)[^>]*>/,
+		attr = /([a-zA-Z_:][-a-zA-Z0-9_:.]*)(?:\s*=\s*(?:(?:"((?:\\.|[^"])*)")|(?:'((?:\\.|[^'])*)')|([^>\s]+)))?/g;
+
+	// Empty Elements - HTML 5
+	var empty = makeMap("area,base,basefont,br,col,frame,hr,img,input,link,meta,param,embed,command,keygen,source,track,wbr");
+
+	// Block Elements - HTML 5
+	var block = makeMap("a,address,code,article,applet,aside,audio,blockquote,button,canvas,center,dd,del,dir,div,dl,dt,fieldset,figcaption,figure,footer,form,frameset,h1,h2,h3,h4,h5,h6,header,hgroup,hr,iframe,ins,isindex,li,map,menu,noframes,noscript,object,ol,output,p,pre,section,script,table,tbody,td,tfoot,th,thead,tr,ul,video");
+
+	// Inline Elements - HTML 5
+	var inline = makeMap("abbr,acronym,applet,b,basefont,bdo,big,br,button,cite,del,dfn,em,font,i,iframe,img,input,ins,kbd,label,map,object,q,s,samp,script,select,small,span,strike,strong,sub,sup,textarea,tt,u,var");
+
+	// Elements that you can, intentionally, leave open
+	// (and which close themselves)
+	var closeSelf = makeMap("colgroup,dd,dt,li,options,p,td,tfoot,th,thead,tr");
+
+	// Attributes that have their values filled in disabled="disabled"
+	var fillAttrs = makeMap("checked,compact,declare,defer,disabled,ismap,multiple,nohref,noresize,noshade,nowrap,readonly,selected");
+
+	// Special Elements (can contain anything)
+	var special = makeMap("wxxxcode-style,script,style,view,scroll-view,block");
+
+	function HTMLParser(html, handler) {
+		var index, chars, match, stack = [], last = html;
+		stack.last = function () {
+			return this[this.length - 1];
+		};
+
+		while (html) {
+			chars = true;
+
+			// Make sure we're not in a script or style element
+			if (!stack.last() || !special[stack.last()]) {
+
+				// Comment
+				if (html.indexOf("<!--") == 0) {
+					index = html.indexOf("-->");
+
+					if (index >= 0) {
+						if (handler.comment)
+							handler.comment(html.substring(4, index));
+						html = html.substring(index + 3);
+						chars = false;
+					}
+
+					// end tag
+				} else if (html.indexOf("</") == 0) {
+					match = html.match(endTag);
+
+					if (match) {
+						html = html.substring(match[0].length);
+						match[0].replace(endTag, parseEndTag);
+						chars = false;
+					}
+
+					// start tag
+				} else if (html.indexOf("<") == 0) {
+					match = html.match(startTag);
+
+					if (match) {
+						html = html.substring(match[0].length);
+						match[0].replace(startTag, parseStartTag);
+						chars = false;
+					}
+				}
+
+				if (chars) {
+					index = html.indexOf("<");
+					var text = ''
+					while (index === 0) {
+	                                  text += "<";
+	                                  html = html.substring(1);
+	                                  index = html.indexOf("<");
+					}
+					text += index < 0 ? html : html.substring(0, index);
+					html = index < 0 ? "" : html.substring(index);
+
+					if (handler.chars)
+						handler.chars(text);
+				}
+
+			} else {
+
+				html = html.replace(new RegExp("([\\s\\S]*?)<\/" + stack.last() + "[^>]*>"), function (all, text) {
+					text = text.replace(/<!--([\s\S]*?)-->|<!\[CDATA\[([\s\S]*?)]]>/g, "$1$2");
+					if (handler.chars)
+						handler.chars(text);
+
+					return "";
+				});
+
+
+				parseEndTag("", stack.last());
+			}
+
+			if (html == last)
+				throw "Parse Error: " + html;
+			last = html;
+		}
+
+		// Clean up any remaining tags
+		parseEndTag();
+
+		function parseStartTag(tag, tagName, rest, unary) {
+			tagName = tagName.toLowerCase();
+
+			if (block[tagName]) {
+				while (stack.last() && inline[stack.last()]) {
+					parseEndTag("", stack.last());
+				}
+			}
+
+			if (closeSelf[tagName] && stack.last() == tagName) {
+				parseEndTag("", tagName);
+			}
+
+			unary = empty[tagName] || !!unary;
+
+			if (!unary)
+				stack.push(tagName);
+
+			if (handler.start) {
+				var attrs = [];
+
+				rest.replace(attr, function (match, name) {
+					var value = arguments[2] ? arguments[2] :
+						arguments[3] ? arguments[3] :
+							arguments[4] ? arguments[4] :
+								fillAttrs[name] ? name : "";
+
+					attrs.push({
+						name: name,
+						value: value,
+						escaped: value.replace(/(^|[^\\])"/g, '$1\\\"') //"
+					});
+				});
+
+				if (handler.start) {
+					handler.start(tagName, attrs, unary);
+				}
+
+			}
+		}
+
+		function parseEndTag(tag, tagName) {
+			// If no tag name is provided, clean shop
+			if (!tagName)
+				var pos = 0;
+
+			// Find the closest opened tag of the same type
+			else {
+				tagName = tagName.toLowerCase();
+				for (var pos = stack.length - 1; pos >= 0; pos--)
+					if (stack[pos] == tagName)
+						break;
+			}
+			if (pos >= 0) {
+				// Close all the open elements, up the stack
+				for (var i = stack.length - 1; i >= pos; i--)
+					if (handler.end)
+						handler.end(stack[i]);
+
+				// Remove the open elements from the stack
+				stack.length = pos;
+			}
+		}
+	};
+
+
+	function makeMap(str) {
+		var obj = {}, items = str.split(",");
+		for (var i = 0; i < items.length; i++)
+			obj[items[i]] = true;
+		return obj;
+	}
+
+	module.exports = HTMLParser;
+
+
+/***/ }),
+/* 42 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	
+	var VM = __webpack_require__(27);
+	var callHook = __webpack_require__(33);
+	var app = {};
+
+	app.init = function init(vm, opt) {
+	  App({
+	    data: {
+	      $root: {}
+	    },
+	    //	Function	生命周期函数--监听小程序初始化	当小程序初始化完成时，会触发 onLaunch（全局只触发一次）
+	    onLaunch(options) {
+	      var rootVM = this.rootVM = VM.initRootVM(this, opt);
+
+	      callHook(rootVM,'onLaunch', options);
+	    },
+	    //	Function	生命周期函数--监听小程序显示	当小程序启动，或从后台进入前台显示，会触发 onShow
+	    onShow(options) {
+	      var rootVM = this.rootVM;
+
+	      callHook(rootVM,'onShow', options);
+	    },
+	    //	Function	生命周期函数--监听小程序隐藏	当小程序从前台进入后台，会触发 onHide
+	    onHide() {
+	      var rootVM = this.rootVM;
+
+	      callHook(rootVM,'onHide');
+	    },
+	    //	Function	错误监听函数	当小程序发生脚本错误，或者 api 调用失败时，会触发 onError 并带上错误信息
+	    onError(msg) {
+	      var rootVM = this.rootVM;
+	      callHook(rootVM,'onError', msg);
+	    },
+	    //	Function	页面不存在监听函数	当小程序出现要打开的页面不存在的情况，会带上页面信息回调该函数，详见下文
+	    onPageNotFound(options) {
+	      var rootVM = this.rootVM;
+	      callHook(rootVM,'onPageNotFound', options);
+	    },
+	    eventProxy: function (e) {
+	      var rootVM = this.rootVM;
+
+	      const eventId = e.target.dataset.eventId;
+	      if (eventId) {
+	        $vm.$event = {
+	          _mp: e
+	        }
+	        $vm[eventId](e);
+	      }
+	    }
+	  });
+	};
+
+	module.exports = app;
+
+/***/ }),
+/* 43 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	// simplest event emitter 60 lines
 	// ===============================
@@ -5392,21 +9282,24 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = Event;
 
 
-/***/ },
-/* 24 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 44 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	var _ = __webpack_require__(3);
-	var parseExpression = __webpack_require__(14).expression;
+	var parseExpression = __webpack_require__(16).expression;
 	var diff = __webpack_require__(18);
+	var diffTrack = __webpack_require__(19);
 	var diffArray = diff.diffArray;
 	var diffObject = diff.diffObject;
+	var parsePath = __webpack_require__(45);
 
 	function Watcher(){}
 
 	var methods = {
 	  $watch: function(expr, fn, options){
-	    var get, once, test, rlen, extra = this.__ext__; //records length
+	    var get, once, test, rlen, isStable = false, extra = this.__ext__; //records length
+	    var rawExpr = expr;
 	    if(!this._watchers) this._watchers = [];
 	    if(!this._watchersForStable) this._watchersForStable = [];
 
@@ -5437,26 +9330,49 @@ return /******/ (function(modules) { // webpackBootstrap
 	        get = expr.bind(this);      
 	      }else{
 	        expr = this.$expression(expr);
-	        get = expr.get;
-	        once = expr.once;
+	        if(_.isExpr(expr)) {
+	          get = expr.get;
+	          once = expr.once;
+	        } else {
+	          get = function(){return expr};
+	          once = true;
+	          isStable = true;
+	        }
 	      }
+	    }
+
+	    // for mp: parse watch path
+	    if (get === undefined && rawExpr) {
+	      get = parsePath(rawExpr).reduce(function(fn, key) {
+	        return function(c, e) {
+	          e = e || '';
+	          return c._sg_(key, fn(c, e), e);
+	        }
+	      }, function(c, e) {
+	        return c.data;
+	      });
 	    }
 
 	    var watcher = {
 	      id: uid, 
 	      get: get, 
-	      fn: fn, 
+	      fn: function(...args) {
+	        fn.call(this, ...args);
+	        this._updateMPData();
+	      }, 
 	      once: once, 
 	      force: options.force,
 	      // don't use ld to resolve array diff
 	      diff: options.diff,
+	      keyOf: options.keyOf,
 	      test: test,
 	      deep: options.deep,
 	      last: options.sync? get(this): options.last
+	      // cache the trackInfo for list tarck.
 	    }
 
 
-	    this[options.stable? '_watchersForStable': '_watchers'].push(watcher);
+	    this[(options.stable || isStable)? '_watchersForStable': '_watchers'].push(watcher);
 	    
 	    rlen = this._records && this._records.length;
 	    if(rlen) this._records[rlen-1].push(watcher)
@@ -5570,12 +9486,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var dirty = false;
 	    if(!watcher) return;
 
-	    var now, last, tlast, tnow,  eq, diff;
+	    var now, last, tlast, tnow,  
+	      eq, diff, keyOf, trackDiff
+	     
 
 	    if(!watcher.test){
 
 	      now = watcher.get(this);
 	      last = watcher.last;
+	      keyOf = watcher.keyOf
 
 	      if(now !== last || watcher.force){
 	        tlast = _.typeOf(last);
@@ -5586,8 +9505,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	        if( !(tnow === 'object' && tlast==='object' && watcher.deep) ){
 	          // Array
 	          if( tnow === 'array' && ( tlast=='undefined' || tlast === 'array') ){
-	            diff = diffArray(now, watcher.last || [], watcher.diff)
-	            if( tlast !== 'array' || diff === true || diff.length ) dirty = true;
+	            if(typeof keyOf === 'function'){
+	              trackDiff = diffTrack(now, watcher.last || [], keyOf )
+	              diff = trackDiff.steps;
+	              if(trackDiff.dirty) dirty = true;
+	            }else{
+	              diff = diffArray(now, watcher.last || [], watcher.diff)
+	            }
+	            
+	            if(!dirty && (tlast !== 'array' || diff === true || diff.length) ) dirty = true;
 	          }else{
 	            eq = _.equals( now, last );
 	            if( !eq || watcher.force ){
@@ -5596,7 +9522,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	            }
 	          }
 	        }else{
-	          diff =  diffObject( now, last, watcher.diff );
+	          diff =  diffObject( now, last, watcher.diff, keyOf  );
+	          if(diff.isTrack){
+	            trackDiff = diff;
+	            diff = trackDiff.steps;
+	          }
 	          if( diff === true || diff.length ) dirty = true;
 	        }
 	      }
@@ -5615,7 +9545,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }else{
 	        watcher.last = now;
 	      }
-	      watcher.fn.call(this, now, last, diff)
+	      watcher.fn.call(this, now, last, diff, trackDiff && trackDiff.oldKeyMap, trackDiff && trackDiff.dirty)
 	      if(watcher.once) this.$unwatch(watcher)
 	    }
 
@@ -5650,8 +9580,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    if(detect && typeof expr === 'string') return expr;
 	    return this.$expression(expr).get(this);
 	  },
-	  $update: function(){
+	  $update: function() {
 	    var rootParent = this;
+	    if(rootParent.$phase==='destroyed') return this;
 	    do{
 	      if(rootParent.data.isolate || !rootParent.$parent) break;
 	      rootParent = rootParent.$parent;
@@ -5665,6 +9596,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	    rootParent.$phase = prephase
 
 	    rootParent.$digest();
+
+	    // for mp: update data to mp
+	    this._updateMPData();
+
 	    return this;
 	  },
 	  // auto collect watchers for logic-control.
@@ -5689,9 +9624,64 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = Watcher;
 
 
-/***/ },
-/* 25 */
-/***/ function(module, exports) {
+/***/ }),
+/* 45 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	var Lexer = __webpack_require__(10);
+
+	module.exports = function(path) {
+	  var tokens = new Lexer(path, { mode: 2, expression: true }).lex();
+	  var res = [];
+	  var i = 0;
+	  var valid = true;
+
+	  if (tokens[0].type !== 'IDENT') {
+	    valid = false;
+	  }
+
+	  while(i < tokens.length) {
+	    var token = tokens[i];
+	    var type = token && token.type;
+	    if (!token || type === 'EOF' || !valid) {
+	      break;
+	    }
+	    switch(type) {
+	      case 'IDENT':
+	        res.push(token.value);
+	        i++;
+	      break;
+	      case '[':
+	        var close = tokens[i + 2];
+	        var mediate = tokens[i + 1];
+	        if ( close
+	            && close.type === ']'
+	            && (mediate.type === 'STRING' || mediate.type === 'NUMBER')
+	        ) {
+	          res.push(mediate.value);
+	          i += 3;
+	        } else {
+	          valid = false;
+	        }
+	      break;
+	      case '.':
+	        i++;
+	      break;
+	      default:
+	        valid = false;
+	    }
+	  }
+
+	  if (!valid) {
+	    throw new Error('Regular.prototype.$watch don\'t support expression "' + path + '"');
+	    return;
+	  }
+	  return res;
+	}
+
+/***/ }),
+/* 46 */
+/***/ (function(module, exports) {
 
 	
 	var f = module.exports = {};
@@ -5740,63 +9730,75 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 
-/***/ },
-/* 26 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 47 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	// Regular
 	var _ = __webpack_require__(3);
-	var dom = __webpack_require__(15);
-	var animate = __webpack_require__(20);
-	var Regular = __webpack_require__(8);
-	var consts = __webpack_require__(16);
+	// var dom = require("../dom");
+	// var animate = require("../helper/animate");
+	var Regular = __webpack_require__(9);
+	var consts = __webpack_require__(20);
 	var namespaces = consts.NAMESPACE;
 	var OPTIONS = consts.OPTIONS
 	var STABLE = OPTIONS.STABLE;
 	var DEEP_STABLE = {deep: true, stable: true};
+	var html2wxml = __webpack_require__(38);
 
 
 
 
-	__webpack_require__(27);
-	__webpack_require__(28);
+	__webpack_require__(48);
+	__webpack_require__(49);
 
 
 	module.exports = {
 	// **warn**: class inteplation will override this directive 
-	  'r-class': function(elem, value){
+	  'r-class': function(elem, value, name, attrs){
 
-	    if(typeof value=== 'string'){
-	      value = _.fixObjStr(value)
-	    }
-	    var isNotHtml = elem.namespaceURI && elem.namespaceURI !== namespaces.html ;
-	    this.$watch(value, function(nvalue){
-	      var className = isNotHtml? elem.getAttribute('class'): elem.className;
-	      className = ' '+ (className||'').replace(/\s+/g, ' ') +' ';
-	      for(var i in nvalue) if(nvalue.hasOwnProperty(i)){
-	        className = className.replace(' ' + i + ' ',' ');
-	        if(nvalue[i] === true){
-	          className += i+' ';
+	    let staticClass = attrs.extra.staticClass || ''
+
+	    this.$watch(value, function (nvalue) {
+
+	      let result = []
+	      let staticClassArr = staticClass.split(' ')
+
+	      Object.keys(nvalue).forEach(function (key) {
+	        if (!!nvalue[key]) {
+	          //如果静态class中有就不push避免重复
+	          if (staticClassArr.indexOf(key) === -1) {
+	            result.push(key)
+	          }
+	        } else {
+	          //如果动态中要删除某个class，静态中也有，必须删除
+	          let index = staticClassArr.indexOf(key)
+	          if (index !== -1) {
+	            staticClassArr.splice(index, 1)
+	          }
 	        }
-	      }
-	      className = className.trim();
-	      if(isNotHtml){
-	        dom.attr(elem, 'class', className)
-	      }else{
-	        elem.className = className
-	      }
-	    }, DEEP_STABLE);
+	      })
+
+	      let resultStr = result.concat(staticClassArr).join(' ')
+
+	      this._updateMPHolders(resultStr, {
+	        key: '__holders',
+	        id: attrs.attrs.filter(a => a.name === name)[0].holders[0].holderId,
+	        extra: attrs.extra
+	      });
+
+	    }, {force: true, stable: true});
 	  },
 	  // **warn**: style inteplation will override this directive 
 	  'r-style': function(elem, value){
-	    if(typeof value=== 'string'){
-	      value = _.fixObjStr(value)
-	    }
-	    this.$watch(value, function(nvalue){
-	      for(var i in nvalue) if(nvalue.hasOwnProperty(i)){
-	        dom.css(elem, i, nvalue[i]);
-	      }
-	    },DEEP_STABLE);
+	    // if(typeof value=== 'string'){
+	    //   value = _.fixObjStr(value)
+	    // }
+	    // this.$watch(value, function(nvalue){
+	    //   for(var i in nvalue) if(nvalue.hasOwnProperty(i)){
+	    //     dom.css(elem, i, nvalue[i]);
+	    //   }
+	    // },DEEP_STABLE);
 	  },
 	  // when expression is evaluate to true, the elem will add display:none
 	  // Example: <div r-hide={{items.length > 0}}></div>
@@ -5805,29 +9807,29 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var preBool = null, compelete;
 	      if( _.isExpr(value) || typeof value === "string"){
 	        this.$watch(value, function(nvalue){
-	          var bool = !!nvalue;
-	          if(bool === preBool) return; 
-	          preBool = bool;
-	          if(bool){
-	            if(elem.onleave){
-	              compelete = elem.onleave(function(){
-	                elem.style.display = "none"
-	                compelete = null;
-	              })
-	            }else{
-	              elem.style.display = "none"
-	            }
+	          // var bool = !!nvalue;
+	          // if(bool === preBool) return; 
+	          // preBool = bool;
+	          // if(bool){
+	          //   if(elem.onleave){
+	          //     compelete = elem.onleave(function(){
+	          //       elem.style.display = "none"
+	          //       compelete = null;
+	          //     })
+	          //   }else{
+	          //     elem.style.display = "none"
+	          //   }
 	            
-	          }else{
-	            if(compelete) compelete();
-	            elem.style.display = "";
-	            if(elem.onenter){
-	              elem.onenter();
-	            }
-	          }
+	          // }else{
+	          //   if(compelete) compelete();
+	          //   elem.style.display = "";
+	          //   if(elem.onenter){
+	          //     elem.onenter();
+	          //   }
+	          // }
 	        }, STABLE);
 	      }else if(!!value){
-	        elem.style.display = "none";
+	        // elem.style.display = "none";
 	      }
 	    },
 	    ssr: function(value){
@@ -5839,31 +9841,43 @@ return /******/ (function(modules) { // webpackBootstrap
 	      tag.body = value;
 	      return "";
 	    },
-	    link: function(elem, value){
-	      this.$watch(value, function(nvalue){
-	        nvalue = nvalue || "";
-	        dom.html(elem, nvalue)
+	    link: function(elem, value, name , attrs){
+	      this.$watch(value, function(newVal){
+	        var node = {};
+	        try {
+	          node = html2wxml.wxParse('wxparse', 'html', newVal, null, 0);
+	        } catch (err) {
+	          console.error('r-html wxParse error', err);
+	        }
+	        this._updateMPHolders(node, {
+	          key: '__wxparsed',
+	          id: attrs.rhtmlId,
+	          extra: attrs.extra
+	        });
+
 	      }, {force: true, stable: true});
+
+	      this._initWxParse()
 	    }
 	  },
 	  'ref': {
-	    accept: consts.COMPONENT_TYPE + consts.ELEMENT_TYPE,
-	    link: function( elem, value ){
-	      var refs = this.$refs || (this.$refs = {});
-	      var cval;
-	      if(_.isExpr(value)){
-	        this.$watch(value, function(nval, oval){
-	          cval = nval;
-	          if(refs[oval] === elem) refs[oval] = null;
-	          if(cval) refs[cval] = elem;
-	        }, STABLE)
-	      }else{
-	        refs[cval = value] = elem;
-	      }
-	      return function(){
-	        refs[cval] = null;
-	      }
-	    }
+	    // accept: consts.COMPONENT_TYPE + consts.ELEMENT_TYPE,
+	    // link: function( elem, value ){
+	    //   var refs = this.$refs || (this.$refs = {});
+	    //   var cval;
+	    //   if(_.isExpr(value)){
+	    //     this.$watch(value, function(nval, oval){
+	    //       cval = nval;
+	    //       if(refs[oval] === elem) refs[oval] = null;
+	    //       if(cval) refs[cval] = elem;
+	    //     }, STABLE)
+	    //   }else{
+	    //     refs[cval = value] = elem;
+	    //   }
+	    //   return function(){
+	    //     refs[cval] = null;
+	    //   }
+	    // }
 	  }
 	}
 
@@ -5880,17 +9894,17 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 
-/***/ },
-/* 27 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 48 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	/**
 	 * event directive  bundle
 	 *
 	 */
 	var _ = __webpack_require__(3);
-	var dom = __webpack_require__(15);
-	var Regular = __webpack_require__(8);
+	// var dom = require("../dom");
+	var Regular = __webpack_require__(9);
 
 	Regular._addProtoInheritCache("event");
 
@@ -5903,85 +9917,85 @@ return /******/ (function(modules) { // webpackBootstrap
 	/**
 	- $('dx').delegate()
 	*/
-	Regular.directive( /^(delegate|de)-\w+$/, function( elem, value, name ) {
-	  var root = this.$root;
-	  var _delegates = root._delegates || ( root._delegates = {} );
-	  if ( !name || !value ) return;
-	  var type = name.split("-")[1];
-	  var fire = _.handleEvent.call(this, value, type);
+	// Regular.directive( /^(delegate|de)-\w+$/, function( elem, value, name ) {
+	//   var root = this.$root;
+	//   var _delegates = root._delegates || ( root._delegates = {} );
+	//   if ( !name || !value ) return;
+	//   var type = name.split("-")[1];
+	//   var fire = _.handleEvent.call(this, value, type);
 
-	  function delegateEvent(ev){
-	    matchParent(ev, _delegates[type], root.parentNode);
-	  }
+	//   function delegateEvent(ev){
+	//     matchParent(ev, _delegates[type], root.parentNode);
+	//   }
 
-	  if( !_delegates[type] ){
-	    _delegates[type] = [];
+	//   if( !_delegates[type] ){
+	//     _delegates[type] = [];
 
-	    if(root.parentNode){
-	      dom.on(root.parentNode, type, delegateEvent);
-	    }else{
-	      root.$on( "$inject", function( node, position, preParent ){
-	        var newParent = this.parentNode;
-	        if( preParent ){
-	          dom.off(preParent, type, delegateEvent);
-	        }
-	        if(newParent) dom.on(this.parentNode, type, delegateEvent);
-	      })
-	    }
-	    root.$on("$destroy", function(){
-	      if(root.parentNode) dom.off(root.parentNode, type, delegateEvent)
-	      _delegates[type] = null;
-	    })
-	  }
-	  var delegate = {
-	    element: elem,
-	    fire: fire
-	  }
-	  _delegates[type].push( delegate );
+	//     if(root.parentNode){
+	//       dom.on(root.parentNode, type, delegateEvent);
+	//     }else{
+	//       root.$on( "$inject", function( node, position, preParent ){
+	//         var newParent = this.parentNode;
+	//         if( preParent ){
+	//           dom.off(preParent, type, delegateEvent);
+	//         }
+	//         if(newParent) dom.on(this.parentNode, type, delegateEvent);
+	//       })
+	//     }
+	//     root.$on("$destroy", function(){
+	//       if(root.parentNode) dom.off(root.parentNode, type, delegateEvent)
+	//       _delegates[type] = null;
+	//     })
+	//   }
+	//   var delegate = {
+	//     element: elem,
+	//     fire: fire
+	//   }
+	//   _delegates[type].push( delegate );
 
-	  return function(){
-	    var delegates = _delegates[type];
-	    if(!delegates || !delegates.length) return;
-	    for( var i = 0, len = delegates.length; i < len; i++ ){
-	      if( delegates[i] === delegate ) delegates.splice(i, 1);
-	    }
-	  }
+	//   return function(){
+	//     var delegates = _delegates[type];
+	//     if(!delegates || !delegates.length) return;
+	//     for( var i = 0, len = delegates.length; i < len; i++ ){
+	//       if( delegates[i] === delegate ) delegates.splice(i, 1);
+	//     }
+	//   }
 
-	});
+	// });
 
 
-	function matchParent(ev , delegates, stop){
-	  if(!stop) return;
-	  var target = ev.target, pair;
-	  while(target && target !== stop){
-	    for( var i = 0, len = delegates.length; i < len; i++ ){
-	      pair = delegates[i];
-	      if(pair && pair.element === target){
-	        pair.fire(ev)
-	      }
-	    }
-	    target = target.parentNode;
-	  }
-	}
+	// function matchParent(ev , delegates, stop){
+	//   if(!stop) return;
+	//   var target = ev.target, pair;
+	//   while(target && target !== stop){
+	//     for( var i = 0, len = delegates.length; i < len; i++ ){
+	//       pair = delegates[i];
+	//       if(pair && pair.element === target){
+	//         pair.fire(ev)
+	//       }
+	//     }
+	//     target = target.parentNode;
+	//   }
+	// }
 
-/***/ },
-/* 28 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ }),
+/* 49 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	// Regular
 	var _ = __webpack_require__(3);
-	var dom = __webpack_require__(15);
-	var OPTIONS = __webpack_require__(16).OPTIONS
+	// var dom = require("../dom");
+	var OPTIONS = __webpack_require__(20).OPTIONS
 	var STABLE = OPTIONS.STABLE;
 	var hasInput;
-	var Regular = __webpack_require__(8);
+	var Regular = __webpack_require__(9);
 
-	var modelHandlers = {
-	  "text": initText,
-	  "select": initSelect,
-	  "checkbox": initCheckBox,
-	  "radio": initRadio
-	}
+	// var modelHandlers = {
+	//   "text": initText,
+	//   "select": initSelect,
+	//   "checkbox": initCheckBox,
+	//   "radio": initRadio
+	// }
 
 
 	// @TODO
@@ -6004,17 +10018,25 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	Regular.directive("r-model", {
 	  param: ['throttle', 'lazy'],
-	  link: function( elem, value, name, extra ){
-	    var tag = elem.tagName.toLowerCase();
-	    var sign = tag;
-	    if(sign === "input") sign = elem.type || "text";
-	    else if(sign === "textarea") sign = "text";
-	    if(typeof value === "string") value = this.$expression(value);
+	  link: function( elem, value, name, extra ) {
+	    this._addMPEventHandler(extra.eventId, 'r-model', function(e) {
+	      var v = e.detail && e.detail.value;
+	      if (v !== undefined) {
+	        value.set(this, v);
+	        this.$update();
+	      }
+	    });
 
-	    if( modelHandlers[sign] ) return modelHandlers[sign].call(this, elem, value, extra);
-	    else if(tag === "input"){
-	      return modelHandlers.text.call(this, elem, value, extra);
-	    }
+	    // var tag = elem.tagName.toLowerCase();
+	    // var sign = tag;
+	    // if(sign === "input") sign = elem.type || "text";
+	    // else if(sign === "textarea") sign = "text";
+	    // if(typeof value === "string") value = this.$expression(value);
+
+	    // if( modelHandlers[sign] ) return modelHandlers[sign].call(this, elem, value, extra);
+	    // else if(tag === "input"){
+	    //   return modelHandlers.text.call(this, elem, value, extra);
+	    // }
 	  }
 	  //@TODO
 	  // ssr: function(name, value){
@@ -6028,414 +10050,175 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	// binding <select>
 
-	function initSelect( elem, parsed, extra){
-	  var self = this;
-	  var wc = this.$watch(parsed, function(newValue){
-	    var children = elem.getElementsByTagName('option');
-	    for(var i =0, len = children.length ; i < len; i++){
-	      if(children[i].value == newValue){
-	        elem.selectedIndex = i;
-	        break;
-	      }
-	    }
-	  }, STABLE);
+	// function initSelect( elem, parsed, extra){
+	//   var self = this;
+	//   var wc = this.$watch(parsed, function(newValue){
+	//     var children = elem.getElementsByTagName('option');
+	//     for(var i =0, len = children.length ; i < len; i++){
+	//       if(children[i].value == newValue){
+	//         elem.selectedIndex = i;
+	//         break;
+	//       }
+	//     }
+	//   }, STABLE);
 
-	  function handler(){
-	    parsed.set(self, this.value);
-	    wc.last = this.value;
-	    self.$update();
-	  }
-	  var isChanging = true 
-	  elem.__change = function(){
-	    if(isChanging) return;
-	    isChanging = true;
-	    setTimeout(handler,0)
-	  }
+	//   function handler(){
+	//     parsed.set(self, this.value);
+	//     wc.last = this.value;
+	//     self.$update();
+	//   }
+	//   // var isChanging = true 
+	//   // var __change = function(){
+	//   //   if(isChanging) return;
+	//   //   isChanging = true;
+	//   //   setTimeout(handler,0)
+	//   // }
 
-	  dom.on( elem, "change", handler );
+	//   dom.on( elem, "change", handler );
 	  
-	  if(parsed.get(self) === undefined && elem.value){
-	    parsed.set(self, elem.value);
-	  }
+	//   if(parsed.get(self) === undefined && elem.value){
+	//     parsed.set(self, elem.value);
+	//   }
 
-	  return function destroy(){
-	    dom.off(elem, "change", handler);
-	    // remove __change function 
-	    delete elem.__change;
-	  }
-	}
+	//   return function destroy(){
+	//     dom.off(elem, "change", handler);
+	//     // @TODO remove __change function 
+	//     // elem.__change = null;
+	//   }
+	// }
 
 	// input,textarea binding
-	function initText(elem, parsed, extra){
-	  var param = extra.param;
-	  var throttle, lazy = param.lazy
+	// function initText(elem, parsed, extra){
+	//   var param = extra.param;
+	//   var throttle, lazy = param.lazy
 
-	  if('throttle' in param){
-	    // <input throttle r-model>
-	    if(param[throttle] === true){
-	      throttle = 400;
-	    }else{
-	      throttle = parseInt(param.throttle , 10)
-	    }
-	  }
+	//   if('throttle' in param){
+	//     // <input throttle r-model>
+	//     if(param[throttle] === true){
+	//       throttle = 400;
+	//     }else{
+	//       throttle = parseInt(param.throttle , 10)
+	//     }
+	//   }
 
-	  var self = this;
-	  var wc = this.$watch(parsed, function(newValue){
-	    if(elem.value !== newValue) elem.value = newValue == null? "": "" + newValue;
-	  }, STABLE);
+	//   var self = this;
+	//   var wc = this.$watch(parsed, function(newValue){
+	//     if(elem.value !== newValue) elem.value = newValue == null? "": "" + newValue;
+	//   }, STABLE);
 
-	  // @TODO to fixed event
-	  var handler = function (ev){
-	    var that = this;
-	    if(ev.type==='cut' || ev.type==='paste'){
-	      _.nextTick(function(){
-	        var value = that.value
-	        parsed.set(self, value);
-	        wc.last = value;
-	        self.$update();
-	      })
-	    }else{
-	        var value = that.value
-	        parsed.set(self, value);
-	        wc.last = value;
-	        self.$update();
-	    }
-	  };
+	//   // @TODO to fixed event
+	//   var handler = function (ev){
+	//     var that = this;
+	//     if(ev.type==='cut' || ev.type==='paste'){
+	//       _.nextTick(function(){
+	//         var value = that.value
+	//         parsed.set(self, value);
+	//         wc.last = value;
+	//         self.$update();
+	//       })
+	//     }else{
+	//         var value = that.value
+	//         parsed.set(self, value);
+	//         wc.last = value;
+	//         self.$update();
+	//     }
+	//   };
 
-	  if(throttle && !lazy){
-	    var preHandle = handler, tid;
-	    handler = _.throttle(handler, throttle);
-	  }
+	//   if(throttle && !lazy){
+	//     var preHandle = handler, tid;
+	//     handler = _.throttle(handler, throttle);
+	//   }
 
-	  if(hasInput === undefined){
-	    hasInput = dom.msie !== 9 && "oninput" in document.createElement('input')
-	  }
+	//   if(hasInput === undefined){
+	//     hasInput = dom.msie !== 9 && "oninput" in document.createElement('input')
+	//   }
 
-	  if(lazy){
-	    dom.on(elem, 'change', handler)
-	  }else{
-	    if( hasInput){
-	      elem.addEventListener("input", handler );
-	    }else{
-	      dom.on(elem, "paste keyup cut change", handler)
-	    }
-	  }
-	  if(parsed.get(self) === undefined && elem.value){
-	     parsed.set(self, elem.value);
-	  }
-	  return function (){
-	    if(lazy) return dom.off(elem, "change", handler);
-	    if( hasInput ){
-	      elem.removeEventListener("input", handler );
-	    }else{
-	      dom.off(elem, "paste keyup cut change", handler)
-	    }
-	  }
-	}
+	//   if(lazy){
+	//     dom.on(elem, 'change', handler)
+	//   }else{
+	//     if( hasInput){
+	//       elem.addEventListener("input", handler );
+	//     }else{
+	//       dom.on(elem, "paste keyup cut change", handler)
+	//     }
+	//   }
+	//   if(parsed.get(self) === undefined && elem.value){
+	//      parsed.set(self, elem.value);
+	//   }
+	//   return function (){
+	//     if(lazy) return dom.off(elem, "change", handler);
+	//     if( hasInput ){
+	//       elem.removeEventListener("input", handler );
+	//     }else{
+	//       dom.off(elem, "paste keyup cut change", handler)
+	//     }
+	//   }
+	// }
 
 
 	// input:checkbox  binding
 
-	function initCheckBox(elem, parsed){
-	  var self = this;
-	  var watcher = this.$watch(parsed, function(newValue){
-	    dom.attr(elem, 'checked', !!newValue);
-	  }, STABLE);
+	// function initCheckBox(elem, parsed){
+	//   var self = this;
+	//   var watcher = this.$watch(parsed, function(newValue){
+	//     dom.attr(elem, 'checked', !!newValue);
+	//   }, STABLE);
 
-	  var handler = function handler(){
-	    var value = this.checked;
-	    parsed.set(self, value);
-	    watcher.last = value;
-	    self.$update();
-	  }
-	  if(parsed.set) dom.on(elem, "change", handler)
+	//   var handler = function handler(){
+	//     var value = this.checked;
+	//     parsed.set(self, value);
+	//     watcher.last = value;
+	//     self.$update();
+	//   }
+	//   if(parsed.set) dom.on(elem, "change", handler)
 
-	  if(parsed.get(self) === undefined){
-	    parsed.set(self, !!elem.checked);
-	  }
+	//   if(parsed.get(self) === undefined){
+	//     parsed.set(self, !!elem.checked);
+	//   }
 
-	  return function destroy(){
-	    if(parsed.set) dom.off(elem, "change", handler)
-	  }
-	}
+	//   return function destroy(){
+	//     if(parsed.set) dom.off(elem, "change", handler)
+	//   }
+	// }
 
 
 	// input:radio binding
 
-	function initRadio(elem, parsed){
-	  var self = this;
-	  var wc = this.$watch(parsed, function( newValue ){
-	    if(newValue == elem.value) elem.checked = true;
-	    else elem.checked = false;
-	  }, STABLE);
+	// function initRadio(elem, parsed){
+	//   var self = this;
+	//   var wc = this.$watch(parsed, function( newValue ){
+	//     if(newValue == elem.value) elem.checked = true;
+	//     else elem.checked = false;
+	//   }, STABLE);
 
 
-	  var handler = function handler(){
-	    var value = this.value;
-	    parsed.set(self, value);
-	    self.$update();
-	  }
-	  if(parsed.set) dom.on(elem, "change", handler)
-	  // beacuse only after compile(init), the dom structrue is exsit. 
-	  if(parsed.get(self) === undefined){
-	    if(elem.checked) {
-	      parsed.set(self, elem.value);
-	    }
-	  }
+	//   var handler = function handler(){
+	//     var value = this.value;
+	//     parsed.set(self, value);
+	//     self.$update();
+	//   }
+	//   if(parsed.set) dom.on(elem, "change", handler)
+	//   // beacuse only after compile(init), the dom structrue is exsit. 
+	//   if(parsed.get(self) === undefined){
+	//     if(elem.checked) {
+	//       parsed.set(self, elem.value);
+	//     }
+	//   }
 
-	  return function destroy(){
-	    if(parsed.set) dom.off(elem, "change", handler)
-	  }
-	}
-
-
-
-
-
-/***/ },
-/* 29 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var // packages
-	  _ = __webpack_require__(3),
-	 animate = __webpack_require__(20),
-	 dom = __webpack_require__(15),
-	 Regular = __webpack_require__(8);
-
-
-	var // variables
-	  rClassName = /^[-\w]+(\s[-\w]+)*$/,
-	  rCommaSep = /[\r\n\f ]*,[\r\n\f ]*(?=\w+\:)/, //  dont split comma in  Expression
-	  rStyles = /^\{.*\}$/, //  for Simpilfy
-	  rSpace = /\s+/, //  for Simpilfy
-	  WHEN_COMMAND = "when",
-	  EVENT_COMMAND = "on",
-	  THEN_COMMAND = "then";
-
-	/**
-	 * Animation Plugin
-	 * @param {Component} Component 
-	 */
-
-
-	function createSeed(type){
-
-	  var steps = [], current = 0, callback = _.noop;
-	  var key;
-
-	  var out = {
-	    type: type,
-	    start: function(cb){
-	      key = _.uid();
-	      if(typeof cb === "function") callback = cb;
-	      if(current> 0 ){
-	        current = 0 ;
-	      }else{
-	        out.step();
-	      }
-	      return out.compelete;
-	    },
-	    compelete: function(){
-	      key = null;
-	      callback && callback();
-	      callback = _.noop;
-	      current = 0;
-	    },
-	    step: function(){
-	      if(steps[current]) steps[current ]( out.done.bind(out, key) );
-	    },
-	    done: function(pkey){
-	      if(pkey !== key) return; // means the loop is down
-	      if( current < steps.length - 1 ) {
-	        current++;
-	        out.step();
-	      }else{
-	        out.compelete();
-	      }
-	    },
-	    push: function(step){
-	      steps.push(step)
-	    }
-	  }
-
-	  return out;
-	}
-
-	Regular._addProtoInheritCache("animation")
-
-
-	// builtin animation
-	Regular.animation({
-	  "wait": function( step ){
-	    var timeout = parseInt( step.param ) || 0
-	    return function(done){
-	      // _.log("delay " + timeout)
-	      setTimeout( done, timeout );
-	    }
-	  },
-	  "class": function(step){
-	    var tmp = step.param.split(","),
-	      className = tmp[0] || "",
-	      mode = parseInt(tmp[1]) || 1;
-
-	    return function(done){
-	      // _.log(className)
-	      animate.startClassAnimate( step.element, className , done, mode );
-	    }
-	  },
-	  "call": function(step){
-	    var fn = this.$expression(step.param).get, self = this;
-	    return function(done){
-	      // _.log(step.param, 'call')
-	      fn(self);
-	      self.$update();
-	      done()
-	    }
-	  },
-	  "emit": function(step){
-	    var param = step.param;
-	    var tmp = param.split(","),
-	      evt = tmp[0] || "",
-	      args = tmp[1]? this.$expression(tmp[1]).get: null;
-
-	    if(!evt) throw Error("you shoud specified a eventname in emit command");
-
-	    var self = this;
-	    return function(done){
-	      self.$emit(evt, args? args(self) : undefined);
-	      done();
-	    }
-	  },
-	  // style: left {10}px,
-	  style: function(step){
-	    var styles = {}, 
-	      param = step.param,
-	      pairs = param.split(","), valid;
-	    pairs.forEach(function(pair){
-	      pair = pair.trim();
-	      if(pair){
-	        var tmp = pair.split( rSpace ),
-	          name = tmp.shift(),
-	          value = tmp.join(" ");
-
-	        if( !name || !value ) throw Error("invalid style in command: style");
-	        styles[name] = value;
-	        valid = true;
-	      }
-	    })
-
-	    return function(done){
-	      if(valid){
-	        animate.startStyleAnimate(step.element, styles, done);
-	      }else{
-	        done();
-	      }
-	    }
-	  }
-	})
+	//   return function destroy(){
+	//     if(parsed.set) dom.off(elem, "change", handler)
+	//   }
+	// }
 
 
 
-	// hancdle the r-animation directive
-	// el : the element to process
-	// value: the directive value
-	function processAnimate( element, value ){
-	  var Component = this.constructor;
-
-	  if(_.isExpr(value)){
-	    value = value.get(this);
-	  }
-
-	  value = value.trim();
-
-	  var composites = value.split(";"), 
-	    composite, context = this, seeds = [], seed, destroies = [], destroy,
-	    command, param , current = 0, tmp, animator, self = this;
-
-	  function reset( type ){
-	    seed && seeds.push( seed )
-	    seed = createSeed( type );
-	  }
-
-	  function whenCallback(start, value){
-	    if( !!value ) start()
-	  }
-
-	  function animationDestroy(element){
-	    return function(){
-	      element.onenter = null;
-	      element.onleave = null;
-	    } 
-	  }
-
-	  for( var i = 0, len = composites.length; i < len; i++ ){
-
-	    composite = composites[i];
-	    tmp = composite.split(":");
-	    command = tmp[0] && tmp[0].trim();
-	    param = tmp[1] && tmp[1].trim();
-
-	    if( !command ) continue;
-
-	    if( command === WHEN_COMMAND ){
-	      reset("when");
-	      this.$watch(param, whenCallback.bind( this, seed.start ) );
-	      continue;
-	    }
-
-	    if( command === EVENT_COMMAND){
-	      reset(param);
-	      if( param === "leave" ){
-	        element.onleave = seed.start;
-	        destroies.push( animationDestroy(element) );
-	      }else if( param === "enter" ){
-	        element.onenter = seed.start;
-	        destroies.push( animationDestroy(element) );
-	      }else{
-	        if( ("on" + param) in element){ // if dom have the event , we use dom event
-	          destroies.push(this._handleEvent( element, param, seed.start ));
-	        }else{ // otherwise, we use component event
-	          this.$on(param, seed.start);
-	          destroies.push(this.$off.bind(this, param, seed.start));
-	        }
-	      }
-	      continue;
-	    }
-
-	    var animator =  Component.animation(command) 
-	    if( animator && seed ){
-	      seed.push(
-	        animator.call(this,{
-	          element: element,
-	          done: seed.done,
-	          param: param 
-	        })
-	      )
-	    }else{
-	      throw Error( animator? "you should start with `on` or `event` in animation" : ("undefined animator 【" + command +"】" ));
-	    }
-	  }
-
-	  if(destroies.length){
-	    return function(){
-	      destroies.forEach(function(destroy){
-	        destroy();
-	      })
-	    }
-	  }
-	}
 
 
-	Regular.directive( "r-animation", processAnimate)
-	Regular.directive( "r-anim", processAnimate)
+/***/ }),
+/* 50 */
+/***/ (function(module, exports, __webpack_require__) {
 
-
-
-/***/ },
-/* 30 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var Regular = __webpack_require__(8);
+	var Regular = __webpack_require__(9);
 
 	/**
 	 * Timeout Module
@@ -6477,7 +10260,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	Regular.plugin('timeout', TimeoutModule);
 	Regular.plugin('$timeout', TimeoutModule);
 
-/***/ }
+/***/ })
 /******/ ])
 });
 ;
