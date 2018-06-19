@@ -2,9 +2,9 @@
  * author: Di (微信小程序开发工程师)
  * organization: WeAppDev(微信小程序开发论坛)(http://weappdev.com)
  *               垂直微信小程序开发交流社区
- * 
+ *
  * github地址: https://github.com/icindy/wxParse
- * 
+ *
  * for: 微信小程序富文本解析
  * detail : http://weappdev.com/t/wxparse-alpha0-1-html-markdown/184
  */-->
@@ -18,7 +18,16 @@
 </template>
 
 <template name="wxParseImg">
-  <image class="{{item.classStr}} wxParse-{{item.tag}}" data-from="{{item.from}}" data-src="{{item.attr.src}}" data-idx="{{item.imgIndex}}" src="{{item.attr.src}}" mode="aspectFit" bindload="wxParseImgLoad" bindtap="wxParseImgTap" mode="widthFix" style="width:{{item.width}}px;"
+  <image class="{{item.classStr}} wxParse-{{item.tagClass}}"
+    data-from="{{item.from}}"
+    data-src="{{item.attr.src}}"
+    data-idx="{{item.imgIndex}}"
+    src="{{item.attr.src}}"
+    mode="aspectFit"
+    bindload="wxParseImgLoad"
+    bindtap="wxParseImgTap"
+    mode="{{item.mode || 'widthFix'}}"
+    style="width:{{item.width}}px;height:{{item.height}}px;{{item.styleStr}};"
   />
 </template>
 
