@@ -22,27 +22,86 @@ html 元素和小程序元素不一样，regular 的模版和小程序模版页�
 6. onHide
 7. onUnload
 
+小程序的页面钩子函数可以直接在 Regular 页面实例当中进行调用。
+
+```javascript
+export default {
+  type: 'page',
+  onLoad(options) {
+    console.log(1, options);
+  },
+  config() {
+    console.log(2);
+  },
+  init() {
+    console.log(3);
+  },
+  onReady() {
+    console.log(4);
+  },
+  onShow() {
+    console.log('show');
+  },
+  onHide() {
+    console.log('hide');
+  },
+  onPullDownRefresh() {
+    console.log('pulldownrefresh');
+  },
+  onReachBottom() {
+    console.log('reachbottom');
+  },
+  onPageScroll(options) {
+    console.log('pagescroll', options);
+  }
+}
+```
+
+## App 生命周期
+
+TODO
+
 ## 支持特性
 
 ### 事件绑定
 
-```html
-<button on-click="{}">
-```
+事件绑定遵循 Regular 的事件绑定语法，利用 `on-` 指令，对于小程序的原生事件的绑定，也是一样，将 `bind` 替换成 `on-` 就好了。
+
+`click` 事件对应与小程序中 `tap` 事件。
 
 ```html
-<button on-click.catch="{}">
+<button on-click="{ this.onClick($event) }">click</button>
 ```
 
+对于小程序中特有的事件绑定方式，在 Regular 中利用指令修饰符实现。
+
+`catch{event}` -> `on-{event}.catch`
+
 ```html
-<button on-click.catch-capture="{}">
+<div on-touchstart.catch="{ this.onTouchStart($event) }"></div>
 ```
+
+`capturebind{event}` -> `on-{event}.capture`
+
+```html
+<div on-touchstart.capture="{ this.onTouchStart($event) }"></div>
+```
+
+`catch-capture{event}` -> `on-{event}.catch-capture`
+
+```html
+<div on-touchstart.catch-capture="{ this.onTouchStart($event) }"></div>
+```
+
+处理函数中所返回的事件对象与小程序原生事件对象一致，保持不变。
 
 ### filter
 
 ```html
 <span>{ time | dateFormat: 'yyyy-MM-dd' }</span>
 ```
+
+js 中要参照例子的写法，否则可能会出现问题
 
 ```javascript
 import Regular from 'regularjs';
@@ -58,16 +117,57 @@ export default App;
 
 ### {#inc this.$body}
 
+当前只支持静态的模版，不支持动态的字符串编译，例如 `#{inc templateStr}` 是不支持的
+
+```html
+<!-- <Modal> definition -->
+<div class="modal">
+  {#inc this.$body}
+</div>
+
+<!-- use -->
+<Modal>
+  <head>Tips</head>
+  <section>It's a tip</section>
+</Modal>
+```
+
+### {#if}
+
+与 Regular 语法一致。
+
+```html
+{#if mode === 1}
+  <div>1</div>
+{#elseif mode === 2}
+  <div>2</div>
+{#else}
+  <div>other</div>
+{/if}
+```
+
+### {#list}
+
+语法与 Regular 一致，注意不要对大型列表进行 list，否则容易出现性能问题。
+
+```html
+{#list soure as item by item_index}
+  <div on-click="{ this.onItemClick(item) }">{ item.name }</div>
+{/list}
+```
+
 ### 指令
 
 #### r-model
 
 ```html
 <input r-model="{ title }">
-<textarea r-model="{ actical }">
+<textarea r-model="{ article }">
 ```
 
 #### r-hide
+
+隐藏元素指令。
 
 ```html
 <div r-hide="{ !show }"></div>
@@ -75,11 +175,11 @@ export default App;
 
 #### r-html
 
+利用第三方开源库 wxParse 将 html 转换成 wxml 进行渲染。
+
 ```html
 <div r-html="{ !show }"></div>
 ```
-
-- `{#if}`、`{#list}`
 
 ### 性能优化
 
@@ -124,9 +224,8 @@ mpregular 的做法是，每次值更改时，先将这个表达式的值计算�
 
 ## 暂不支持
 
-- `animation`
-- `r-style`
-- `r-class`
+- `r-style`，开发中
+- `r-class`，开发中
 - `r-animation`
 
 ## 工具
