@@ -27,14 +27,15 @@ html 元素和小程序元素不一样，regular 的模版和小程序模版页�
 ```javascript
 export default {
   type: 'page',
-  onLoad(options) {
-    console.log(1, options);
-  },
   config() {
-    console.log(2);
+    // this.$mp.options 与 onLoad 中的 options 相同
+    console.log(1, this.$mp.options);
   },
   init() {
-    console.log(3);
+    console.log(2);
+  },
+  onLoad(options) {
+    console.log(3, options);
   },
   onReady() {
     console.log(4);
