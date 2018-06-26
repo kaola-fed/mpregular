@@ -2,61 +2,81 @@
 
 # mpregular
 
-基于 [RegularJS](https://github.com/regularjs/regular) 实现的小程序开发框架。可以直接用 `RegularJS` 进行小程序开发，提升将原有 Regular 项目转化为小程序的效率，以及保证一致的开发体验。
+基于 [RegularJS](https://github.com/regularjs/regular) 实现的小程序开发框架。可以直接使用 `RegularJS` 的语法和生态进行小程序开发，保证开发体验的一致性，同时提升 **web 应用**和**小程序应用**之间代码互相转换的效率。
 
-## 模版
+## template
 
-html 元素和小程序元素不一样，regular 的模版和小程序模版页不一样，因此需要在编译时对模版进行转换。
+HTML 标签和小程序标签存在差异，比如 div 和 view 之间的关系，RegularJS 的模版语法和小程序模版语法也不一样，因此需要在编译时对模版进行转换。
 
-小程序的原生组件可以直接在 regular 模版里面进行使用，对应的属性、事件名称都是一样的。
+小程序的原生组件可以在 RegularJS 模版中直接使用，对应的属性名和事件名都是一样的，但需要注意的是事件绑定的语法稍有不同，需要使用 RegularJs 的语法进行事件绑定。
+
+例如：
+
+小程序：
+
+```html
+<scroll-view
+  scroll-y
+  bindscroll="onScroll"
+></scroll-view>
+```
+
+mpregular：
+
+```html
+<scroll-view
+  scroll-y
+  on-scroll="{ this.onScroll( $event ) }"
+></scroll-view>
+```
 
 ## Page 生命周期
 
-每个 page 实例对应一个 Regular rootVM。
-
-2. onLoad
-1. config，regular
+1. onLoad
+2. config，regular
 4. init，regular 页面组件及各个子组件
 3. onReady
 5. onShow
 6. onHide
 7. onUnload
 
-小程序的页面钩子函数可以直接在 Regular 页面实例当中进行调用。
+如何使用：
 
 ```javascript
 export default {
   type: 'page',
   config() {
     // this.$mp.options 与 onLoad 中的 options 相同
-    console.log(1, this.$mp.options);
+    console.log('config', this.$mp.options);
   },
   init() {
-    console.log(2);
+    console.log('init');
   },
   onLoad(options) {
-    console.log(3, options);
+    console.log('onLoad', options);
   },
   onReady() {
-    console.log(4);
+    console.log('onReady');
   },
   onShow() {
-    console.log('show');
+    console.log('onShow');
   },
   onHide() {
-    console.log('hide');
+    console.log('onHide');
   },
   onPullDownRefresh() {
-    console.log('pulldownrefresh');
+    console.log('PullDownRefresh');
   },
   onReachBottom() {
-    console.log('reachbottom');
+    console.log('ReachBottom');
   },
   onPageScroll(options) {
-    console.log('pagescroll', options);
+    console.log('PageScroll', options);
   }
 }
 ```
+
+建议只在最外层的 Regular 实例中使用小程序相关的钩子函数，这样在转回 web 代码的时候工作量会相对减少
 
 ## App 生命周期
 
@@ -66,9 +86,9 @@ TODO
 
 ### 事件绑定
 
-事件绑定遵循 Regular 的事件绑定语法，利用 `on-` 指令，对于小程序的原生事件的绑定，也是一样，将 `bind` 替换成 `on-` 就好了。
+事件绑定遵循 Regular 的事件绑定语法，利用 `on-` 指令，对于小程序的原生事件的绑定，也是一样，将 `bind` 替换成 `on-`。
 
-`click` 事件对应与小程序中 `tap` 事件。
+比如 `click` 事件对应小程序中 `tap` 事件。
 
 ```html
 <button on-click="{ this.onClick($event) }">click</button>
@@ -102,23 +122,29 @@ TODO
 <span>{ time | dateFormat: 'yyyy-MM-dd' }</span>
 ```
 
-js 中要参照例子的写法，否则可能会出现问题
-
 ```javascript
 import Regular from 'regularjs';
 
 cosnt App = Regular.extend({
 
 }).filter('dateFormat', function() {
-  // your filer code here
+  // your filter code here
 });
 
 export default App;
 ```
 
-### {#inc this.$body}
+这里需要注意下写法，需要用到 `Regular.extend`，下面的方式目前是不支持的（后面版本会加上）
 
-当前只支持静态的模版，不支持动态的字符串编译，例如 `#{inc templateStr}` 是不支持的
+```js
+export default {
+  filters: {
+    // ...
+  }
+}
+```
+
+### {#inc this.$body}
 
 ```html
 <!-- <Modal> definition -->
@@ -133,9 +159,9 @@ export default App;
 </Modal>
 ```
 
-### {#if}
+目前只支持静态的模版，不支持动态的字符串编译，例如 `#{inc templateStr}` 是不支持的
 
-与 Regular 语法一致。
+### {#if}
 
 ```html
 {#if mode === 1}
@@ -147,15 +173,17 @@ export default App;
 {/if}
 ```
 
-### {#list}
+语法与 Regular 一致。
 
-语法与 Regular 一致，注意不要对大型列表进行 list，否则容易出现性能问题。
+### {#list}
 
 ```html
 {#list soure as item by item_index}
   <div on-click="{ this.onItemClick(item) }">{ item.name }</div>
 {/list}
 ```
+
+语法与 Regular 一致，注意不要对大型列表进行 list 操作，否则容易出现性能问题。
 
 ### 指令
 
@@ -179,41 +207,39 @@ export default App;
 利用第三方开源库 wxParse 将 html 转换成 wxml 进行渲染。
 
 ```html
-<div r-html="{ !show }"></div>
+<div r-html="{ !htmlStr }"></div>
 ```
 
 ### 性能优化
 
-官方文档里特别强调 `setData` 传递大数据时会大量占用 WebView JS 线程，因此对于数据更新，mpregular 做了特别的优化。
+小程序官方文档中特别强调 `setData` 传递大数据时会大量占用 WebView JS 线程，对此 mpregular 做了特别的优化。
 
 #### 收集 view 中使用的数据
 
-收集 template 中，也即使 view 中用到的数据，将插值表达式执行的结果计算完成后，再通过 setData 传递到 view 线程。这样做，可以大大减少数据传输的数量。
+仅仅收集 template 中用到的数据，过滤没有用到的数据，将插值表达式执行的结果计算完成后，再通过 setData 传递到 view 线程。这样做，可以极大减少传输的数据量。
 
 例如：
 
 ```html
-<!-- regular template -->
+<!-- RegularJS template -->
 <span>{ largeData.info.countdown.time }</span>
 <!-- 转换后的小程序 wxml -->
 <text>{ __holders[0] }</text>
 ```
 
-对于上面这个插值，通常的做法是将 largeData 传递给 view，然后由 view 去解析这个对象，得到目标值。但是，如果这个值挂在一个非常大的对象上，那么每次都需要传递这个大对象，性能将非常差。
+对于上面这个插值，通常的做法是将 largeData 传递给 view，然后由 view 去解析这个对象，得到目标值。但是，如果这个值挂在一个非常大的对象上，那么每次都需要传递这个大对象，性能将会非常差。
 
-mpregular 的做法是，每次值更改时，先将这个表达式的值计算出来，在这个例子里就是从 largetData 上取到 time 这个值，再将知道写到 `__holders[0]`， 通过 setData 传递给 view。这样每次更新的数据从一个大对象缩减到一个字符串，性能上会有很大提升。
+mpregular 的做法是，每次值更改时，先将这个表达式的值计算出来，在这个例子里就是从 largetData 上取到 time 这个值，再将值写到 `__holders[0]`， 通过 setData 传递给 view。这样每次更新的数据从一个大对象缩减到一个字符串，性能上会有很大提升。
 
-同时，即便时复杂的插值表达式，也可以利用这个方式将计算结果设置到对应的 `__holders` 上。模版中的 filer、复杂表达式等特性，就是通过这一个机制实现的。
+同时，对于很复杂的插值表达式，也可以通过这种方式将计算结果设置到对应的 `__holders` 上。模版中的 filter、复杂表达式等特性，就是通过这一个机制实现的。
 
 #### 缓存更新数据，定期更新
 
-频繁调用 setData 传递数据也会造成性能问题，因此 mpregular 会设置一个 buffer 缓存更新数据，这段事件内重复的数据会进行 merge，并定时进行更新，目前这个时间时 50ms。这一个机制的实现与 mpvue 时类似的。
-
-在之前的一个版本中，buffer 加入了数据大小的限制，限制每个 setData 周期的数据大小，规避产生 setData 传递数据超过大小限制的问题。但目前已经将这个逻辑去除，因为计算数据大小并不精确，同时性能比较差。这就要求开发者在开发时注意数据大小，不频繁更新大量数据。
+频繁调用 setData 传递数据也会造成性能问题，因此 mpregular 会设置一个 buffer 缓存更新数据，这段事件内重复的数据会进行 merge，并定时进行更新，目前这个时间是 50ms。这一机制的实现与 mpvue 时类似的。
 
 #### 仍可能存在性能问题的情况
 
-虽然 mpregular 对更新到 view 数据进行了简化，但是有些情况下，无法避免大数据的传递。
+虽然 mpregular 对数据更新进行了内部优化，但是存在一些情况，无法避免大数据的传递。
 
 ```html
 {#list largeList as item}
@@ -242,4 +268,3 @@ mpregular 的做法是，每次值更改时，先将这个表达式的值计算�
 - [RegularJS](https://github.com/regularjs/regular)
 - [mpvue](https://github.com/Meituan-Dianping/mpvue)
 - [wxParse](https://github.com/icindy/wxParse)
-
