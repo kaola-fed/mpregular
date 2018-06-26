@@ -2,7 +2,7 @@
 
 # mpregular
 
-基于 [RegularJS](https://github.com/regularjs/regular) 实现的小程序开发框架。可以直接使用 `RegularJS` 的语法和生态进行小程序开发，保证开发体验的一致性，同时提升** web 应用**和**小程序应用**之间代码互相转换的效率。
+基于 [RegularJS](https://github.com/regularjs/regular) 实现的小程序开发框架。可以直接使用 `RegularJS` 的语法和生态进行小程序开发，保证开发体验的一致性，同时提升 **web 应用**和**小程序应用**之间代码互相转换的效率。
 
 ## template
 
@@ -40,7 +40,7 @@ mpregular：
 6. onHide
 7. onUnload
 
-如何使用：
+如何使用：
 
 ```javascript
 export default {
@@ -212,11 +212,11 @@ export default {
 
 ### 性能优化
 
-官方文档里特别强调 `setData` 传递大数据时会大量占用 WebView JS 线程，对此 mpregular 做了特别的优化。
+小程序官方文档中特别强调 `setData` 传递大数据时会大量占用 WebView JS 线程，对此 mpregular 做了特别的优化。
 
 #### 收集 view 中使用的数据
 
-仅仅收集 template 中用到的数据，过滤没有用到的数据，将插值表达式执行的结果计算完成后，再通过 setData 传递到 view 线程。这样做，可以大幅度减少传输的数据量。
+仅仅收集 template 中用到的数据，过滤没有用到的数据，将插值表达式执行的结果计算完成后，再通过 setData 传递到 view 线程。这样做，可以极大减少传输的数据量。
 
 例如：
 
