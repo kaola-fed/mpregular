@@ -1,6 +1,6 @@
-<img src="https://haitao.nos.netease.com/2758f92e-c498-4768-add3-c15a88c90390.gif" alt="mpregular" width="400px" align="center" />
-
-# mpregular
+<p align="center">
+<img src="https://haitao.nos.netease.com/2758f92e-c498-4768-add3-c15a88c90390.gif" alt="mpregular" width="400px"  />
+</p>
 
 基于 [RegularJS](https://github.com/regularjs/regular) 实现的小程序开发框架。可以直接使用 `RegularJS` 的语法和生态进行小程序开发，保证开发体验的一致性，同时提升 **web 应用**和**小程序应用**之间代码互相转换的效率。
 
