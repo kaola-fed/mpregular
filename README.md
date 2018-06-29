@@ -32,10 +32,10 @@ mpregular：
 
 ## Page 生命周期
 
-1. onLoad
-2. config，regular
-4. init，regular 页面组件及各个子组件
-3. onReady
+1. config，regular
+2. onLoad
+3. init，regular 页面组件及各个子组件
+4. onReady
 5. onShow
 6. onHide
 7. onUnload
@@ -44,7 +44,7 @@ mpregular：
 
 ```javascript
 export default {
-  type: 'page',
+  mpType: 'page',
   config() {
     // this.$mp.options 与 onLoad 中的 options 相同
     console.log('config', this.$mp.options);
