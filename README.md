@@ -1,4 +1,4 @@
-[![regularjs](http://regularjs.github.io/image/regular-icon-100.png)](http://regularjs.github.io)
+<img src="https://haitao.nos.netease.com/2758f92e-c498-4768-add3-c15a88c90390.gif" alt="mpregular" width="400px" align="center" />
 
 # mpregular
 
