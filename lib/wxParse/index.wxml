@@ -43,7 +43,8 @@
 </template>
 
 <template name="WxParseBr">
-  <text>\n</text>
+  <!-- <text>\n</text> -->
+  <view></view>
 </template>
 <!--入口模版-->
 
