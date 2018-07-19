@@ -36,8 +36,6 @@ class MPPage {
     Object.keys(obj).forEach(key => {
       const val = obj[key]
       dealData(this.data, key, '.', val)
-      // console.log(parsedData)
-      // Object.assign(parsedData, val)
     })
   }
 

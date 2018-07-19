@@ -51,7 +51,6 @@ describe('instance', function () {
 
   // data 默认初始化数据
   it('data', function (done) {
-    // debugger
     compileFile('instance',
       `
           <template>
