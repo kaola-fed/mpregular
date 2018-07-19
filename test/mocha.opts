@@ -1,0 +1,3 @@
+test/**/*.test.js
+--require babel-register test/helpers/global.js
+--timeout 5000

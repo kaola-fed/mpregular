@@ -27,21 +27,30 @@ fs.readFile = function (path, cb) {
   });
 };
 
-module.exports = function (name, template, cb) {
-  const rootDir = root.toString();
-  const outputName = `${name}.rgl`;
-  const entry = path.join(rootDir, outputName);
-  const rootExists = fs.existsSync(rootDir);
-  if (!rootExists) {
-    fs.mkdirpSync(rootDir);
-  }
+let fileId = 0
+let filePrefix = 'temp_file'
+
+const rootDir = root.toString();
+
+const rootExists = fs.existsSync(rootDir);
+if (!rootExists) {
+  fs.mkdirpSync(rootDir);
+}
+
+module.exports = function (template, cb) {
+
+  const name = `${filePrefix}${fileId}`
+  const inputName = `${name}.rgl`;
+  fileId++;
+
+  const entry = path.join(rootDir, inputName);
 
   fs.writeFileSync(entry, template);
 
   config.entry = {}
   config.entry[name] = entry
   config.output = {
-    filename: outputName
+    filename: '[name].js'
   }
 
   var compiler = webpack(config);
@@ -52,8 +61,10 @@ module.exports = function (name, template, cb) {
   compiler.resolvers.context.fileSystem = fs;
 
   compiler.run(function(err, stats) {
+    fs.unlinkSync(entry); //release memory
+
     if (err) throw err;
-    let code = stats.compilation.assets[`${name}.rgl`].source()
+    let code = stats.compilation.assets[`${name}.js`].source()
     cb(eval(code))
   });
 }

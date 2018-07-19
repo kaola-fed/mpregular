@@ -22,7 +22,7 @@
     "start": "webpack --config webpack.config.js",
     "watch": "gulp watch",
     "watch:build": "gulp watch:build",
-    "test": "jest --no-cache",
+    "test": "UNIT_TEST=true mocha",
     "prepublish": "gulp build"
   },
   "bin": {
@@ -33,6 +33,7 @@
     "babel-core": "^6.26.3",
     "babel-loader": "^7.1.5",
     "babel-preset-es2015": "^6.24.1",
+    "chai": "^4.1.2",
     "expect.js": "~0.3.1",
     "extract-text-webpack-plugin": "^3.0.2",
     "gulp": "3.6.x",
@@ -59,7 +60,7 @@
     "karma-sourcemap-loader": "^0.3.7",
     "karma-webpack": "^3.0.0",
     "memory-fs": "^0.4.1",
-    "mocha": "~1.18.2",
+    "mocha": "^1.18.2",
     "mpregular-loader": "^0.1.2",
     "mpregular-template-compiler": "0.0.33-next.0",
     "recursive-readdir": "^2.2.2",
