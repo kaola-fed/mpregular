@@ -54,4 +54,31 @@ describe('instance', function () {
     )
   })
 
+  it('list', function (done) {
+    assert(
+      `
+          <template>
+            {#list items as item}
+              <li class="static">{item}</li>
+            {/list}
+          </template>
+          <script>
+              export default {
+                mpType: 'page',
+                data: {
+                  items: [
+                    111,
+                    222,
+                    333
+                  ]
+                }
+              }
+          </script>
+       `,
+      function (App) {
+        const appData = getListData()
+        commonCompare(App, appData, done)
+      }
+    )
+  })
 })
