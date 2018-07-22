@@ -7,12 +7,12 @@ module.exports = {
     alias: {
       regularjs: path.resolve(
         __dirname,
-        './lib/index.js'
+        '../../lib/index.js'
       )
     },
     modules: [path.resolve(__dirname, 'test/files'), 'node_modules']
   },
-  devtool: 'inline-source-map',
+  devtool: false,
   plugins: [
     new ExtractTextPlugin('static/css/' + '[name]' + '.wxss'),
   ],
