@@ -217,6 +217,18 @@ export default {
 <div r-html="{ !htmlStr }"></div>
 ```
 
+#### r-style
+
+```html
+<div r-style="{{ height: '30px' }}"></div>
+```
+
+#### r-class
+
+```html
+<button r-class="{{ rounded: isRounded }}"></button>
+```
+
 ### 性能优化
 
 小程序官方文档中特别强调 `setData` 传递大数据时会大量占用 WebView JS 线程，对此 mpregular 做了特别的优化。
@@ -258,8 +270,6 @@ mpregular 的做法是，每次值更改时，先将这个表达式的值计算�
 
 ## 暂不支持
 
-- `r-style`，开发中
-- `r-class`，开发中
 - `r-animation`
 
 ## 工具
