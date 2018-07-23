@@ -1,4 +1,4 @@
 test/**/*.test.js
 --require babel-register test/helpers/global.js
---timeout 5000
+--timeout 10000
 --reporter landing
