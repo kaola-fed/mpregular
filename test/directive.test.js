@@ -80,13 +80,29 @@ describe('directive', function () {
             <div r-style="{{width: width + 'px'}}" style="width: {styleWidth}px;height: 30px;">test</div>
             <div style="width: 100px;"></div>
             <div style="width: {width}px;"></div>
+            <div r-style="{computedStyle}"></div>
+            <div r-style="{this.getStyle()}"></div>
           </template>
           <script>
               export default {
                 mpType: 'page',
                 data: {
                   width: 30,
-                  styleWidth: 20
+                  styleWidth: 20,
+                  computedWidth: 50
+                },
+                getStyle() {
+                  return {
+                    width: '100px',
+                    height: '200px'
+                  }
+                },
+                computed: {
+                  computedStyle(data) {
+                    return {
+                      width: data.computedWidth + 'px'
+                    }
+                  }
                 }
               }
           </script>
@@ -94,7 +110,9 @@ describe('directive', function () {
       function (App) {
         const appData = getAppData({
           1: 'width:30px;height: 30px;',
-          2: 'width: 30px;'
+          2: 'width: 30px;',
+          3: 'width:50px;',
+          4: 'width:100px;height:200px;'
         })
         commonCompare(App, appData, done)
       }
