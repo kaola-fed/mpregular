@@ -27,6 +27,18 @@ function getAppData(data) {
     }
   }
 }
+function getAppBaseData(data) {
+  return {
+    $root: {
+      0: Object.assign({
+        $k: '0',
+        $kk: '0,',
+        $p: '',
+        __indexMap: ""
+      }, data)
+    }
+  }
+}
 
 
 function getListData() {
@@ -55,5 +67,6 @@ function getListData() {
 export {
   getListData,
   getAppDataSingleHolder,
-  getAppData
+  getAppData,
+  getAppBaseData
 }

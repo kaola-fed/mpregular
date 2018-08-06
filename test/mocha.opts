@@ -1,4 +1,5 @@
-test/**/*.test.js
+--inspect-brk
+test/directive.test.js
 --require babel-register test/helpers/global.js
 --timeout 10000
 --reporter landing

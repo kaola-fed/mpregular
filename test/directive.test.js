@@ -1,8 +1,96 @@
-const {commonCompare} = require('./helpers')
+const {commonCompare, createInstance, getPageInstance} = require('./helpers')
+import {input as inputDataSet} from './helpers/eventDataSet'
+const html2wxml = require('../lib/wxParse');
 const assert = require('./helpers/assert')
-const {getAppData, getAppDataSingleHolder, getListData} = require('./mock/holder')
+const {getAppData, getAppBaseData} = require('./mock/holder')
 
 describe('directive', function () {
+  it.only('r-mode', function (done) {
+    assert(
+      `
+          <template>
+            <input r-model="{info}" />
+          </template>
+          <script>
+              export default {
+                mpType: 'page',
+                data: {
+                  info: 'test input'
+                }
+              }
+          </script>
+       `,
+      function (App) {
+        const appData = getAppData({
+          0: 'test input'
+        })
+        const app = createInstance(App)
+        setTimeout(function () {
+          let page = getPageInstance()
+          expect(page.data).to.deep.equal(appData)
+
+          app.$mp.page._callHook('proxyEvent', inputDataSet)
+          setTimeout(function () {
+            expect(page.data).to.deep.equal(getAppData({
+              0: 'test update'
+            }))
+            done()
+          }, 300)
+
+        }, 300)
+      }
+    )
+  })
+  it('r-html', function (done) {
+    assert(
+      `
+          <template>
+              <div r-html={rawHtml}></div>
+          </template>
+          <script>
+              export default {
+                mpType: 'page',
+                data: {
+                  rawHtml: '<div>test r html</div>'
+                }
+              }
+          </script>
+       `,
+      function (App) {
+        let node = html2wxml.wxParse('wxparse', 'html', '<div>test r html</div>', null, 0);
+        const appData = getAppBaseData({
+          __wxparsed: {
+            0: node
+          },
+        })
+        commonCompare(App, appData, done)
+      }
+    )
+  })
+
+  it('r-hide', function (done) {
+    assert(
+      `
+          <template>
+              <div r-hide={hide}></div>
+          </template>
+          <script>
+              export default {
+                mpType: 'page',
+                data: {
+                  hide: true
+                }
+              }
+          </script>
+       `,
+      function (App) {
+        const appData = getAppData({
+          0: true,
+        })
+        commonCompare(App, appData, done)
+      }
+    )
+  })
 
   it('r-class', function (done) {
     assert(
