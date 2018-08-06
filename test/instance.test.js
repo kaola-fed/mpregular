@@ -1,4 +1,5 @@
 const {commonCompare} = require('./helpers')
+const {format}  = require('./helpers/filter')
 const assert = require('./helpers/assert')
 const {getAppDataSingleHolder, getListData} = require('./mock/holder')
 
@@ -22,6 +23,51 @@ describe('instance', function () {
        `,
       function (App) {
         const appData = getAppDataSingleHolder('test')
+        commonCompare(App, appData, done)
+      }
+    )
+  })
+
+  it('filter', function (done) {
+    assert(
+      `
+          <template>
+            <p>{time| format: 'yyyy-MM-dd HH:mm'}</p>
+          </template>
+          <script>
+              export default {
+                mpType: 'page',
+                data: {
+                  time: new Date(2000, 0, 1, 10, 10, 0).getTime()
+                }
+              }
+          </script>
+       `,
+      function (App) {
+        App.filter("format", format)
+        const appData = getAppDataSingleHolder('2000-01-01 10:10')
+        commonCompare(App, appData, done)
+      }
+    )
+  })
+
+  it('if', function (done) {
+    assert(
+      `
+          <template>
+            {#if test}<div>test</div>{/if}
+          </template>
+          <script>
+              export default {
+                mpType: 'page',
+                data: {
+                  test: true
+                }
+              }
+          </script>
+       `,
+      function (App) {
+        const appData = getAppDataSingleHolder(true)
         commonCompare(App, appData, done)
       }
     )

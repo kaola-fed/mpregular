@@ -23,6 +23,7 @@
     "watch": "gulp watch",
     "watch:build": "gulp watch:build",
     "test": "UNIT_TEST=1 mocha",
+    "test:debug": "UNIT_TEST=1 node --inspect-brk node_modules/mocha/bin/_mocha --timeout 0",
     "coverage": "UNIT_TEST=1 cross-env NODE_ENV=test nyc --all mocha",
     "prepublish": "gulp build"
   },

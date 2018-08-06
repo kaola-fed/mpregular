@@ -5,7 +5,7 @@ const assert = require('./helpers/assert')
 const {getAppData, getAppBaseData} = require('./mock/holder')
 
 describe('directive', function () {
-  it.only('r-mode', function (done) {
+  it('r-model', function (done) {
     assert(
       `
           <template>
@@ -29,7 +29,7 @@ describe('directive', function () {
           let page = getPageInstance()
           expect(page.data).to.deep.equal(appData)
 
-          app.$mp.page._callHook('proxyEvent', inputDataSet)
+          page.proxyEvent(inputDataSet)
           setTimeout(function () {
             expect(page.data).to.deep.equal(getAppData({
               0: 'test update'
