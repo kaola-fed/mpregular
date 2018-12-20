@@ -1,6 +1,6 @@
 const {commonCompare, createInstance, getPageInstance} = require('./helpers')
 import {input as inputDataSet} from './helpers/eventDataSet'
-const html2wxml = require('../lib/wxParse');
+const octoparse = require('octoparse/lib').default;
 const assert = require('./helpers/assert')
 const {getAppData, getAppBaseData} = require('./mock/holder')
 
@@ -57,7 +57,7 @@ describe('directive', function () {
           </script>
        `,
       function (App) {
-        let node = html2wxml.wxParse('wxparse', 'html', '<div>test r html</div>', null, 0);
+        let node = octoparse.htmlParse('<div>test r html</div>');
         const appData = getAppBaseData({
           __wxparsed: {
             0: node
