@@ -75,5 +75,8 @@
     "through2": "~0.4.1",
     "webpack": "^3.12.0",
     "yargs": "^3.26.0"
+  },
+  "dependencies": {
+    "octoparse": "^0.3.0"
   }
 }

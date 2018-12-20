@@ -1,227 +1,115 @@
-/**
- * author: Di (微信小程序开发工程师)
- * organization: WeAppDev(微信小程序开发论坛)(http://weappdev.com)
- *               垂直微信小程序开发交流社区
- *
- * github地址: https://github.com/icindy/wxParse
- *
- * for: 微信小程序富文本解析
- * detail : http://weappdev.com/t/wxparse-alpha0-1-html-markdown/184
- */
-
-.wxParse {
+.octoParse{
     margin: 0 5px;
-    font-family: Helvetica, sans-serif;
+    font-family: Helvetica,sans-serif;
     font-size: 28rpx;
     color: #666;
     line-height: 1.8;
 }
-
-._wp-view {
-    word-break: break-all;
-    overflow: auto;
-}
-
-._wp-inline {
+.octoParse-inline{
     display: inline;
     margin: 0;
     padding: 0;
 }
-
 /*//标题 */
+.octoParse-div{margin: 0;padding: 0;}
+.octoParse-h1{ font-size:2em; margin: .67em 0 }
+.octoParse-h2{ font-size:1.5em; margin: .75em 0 }
+.octoParse-h3{ font-size:1.17em; margin: .83em 0 }
+.octoParse-h4{ margin: 1.12em 0}
+.octoParse-h5 { font-size:.83em; margin: 1.5em 0 }
+.octoParse-h6{ font-size:.75em; margin: 1.67em 0 }
 
-._wp-div {
-    margin: 0;
-    padding: 0;
+.octoParse-h1 {
+  font-size: 18px;
+  font-weight: 400;
+  margin-bottom: .9em;
+}
+.octoParse-h2 {
+  font-size: 16px;
+  font-weight: 400;
+  margin-bottom: .34em;
+}
+.octoParse-h3 {
+  font-weight: 400;
+  font-size: 15px;
+  margin-bottom: .34em;
+}
+.octoParse-h4 {
+  font-weight: 400;
+  font-size: 14px;
+  margin-bottom: .24em;
+}
+.octoParse-h5 {
+  font-weight: 400;
+  font-size: 13px;
+  margin-bottom: .14em;
+}
+.octoParse-h6 {
+  font-weight: 400;
+  font-size: 12px;
+  margin-bottom: .04em;
 }
 
-._wp-h1 {
-    font-size: 2em;
-    margin: .67em 0
-}
+.octoParse-h1, .octoParse-h2, .octoParse-h3, .octoParse-h4, .octoParse-h5, .octoParse-h6, .octoParse-b, .octoParse-strong  { font-weight: bolder }
 
-._wp-h2 {
-    font-size: 1.5em;
-    margin: .75em 0
-}
-
-._wp-h3 {
-    font-size: 1.17em;
-    margin: .83em 0
-}
-
-._wp-h4 {
-    margin: 1.12em 0
-}
-
-._wp-h5 {
-    font-size: .83em;
-    margin: 1.5em 0
-}
-
-._wp-h6 {
-    font-size: .75em;
-    margin: 1.67em 0
-}
-
-._wp-h1 {
-    font-size: 18px;
-    font-weight: 400;
-    margin-bottom: .9em;
-}
-
-._wp-h2 {
-    font-size: 16px;
-    font-weight: 400;
-    margin-bottom: .34em;
-}
-
-._wp-h3 {
-    font-weight: 400;
-    font-size: 15px;
-    margin-bottom: .34em;
-}
-
-._wp-h4 {
-    font-weight: 400;
-    font-size: 14px;
-    margin-bottom: .24em;
-}
-
-._wp-h5 {
-    font-weight: 400;
-    font-size: 13px;
-    margin-bottom: .14em;
-}
-
-._wp-h6 {
-    font-weight: 400;
-    font-size: 12px;
-    margin-bottom: .04em;
-}
-
-._wp-h1,
-._wp-h2,
-._wp-h3,
-._wp-h4,
-._wp-h5,
-._wp-h6,
-._wp-b,
-._wp-strong {
-    font-weight: bolder
-}
-
-._wp-i,
-._wp-cite,
-._wp-em,
-._wp-var,
-._wp-address {
-    font-style: italic
-}
-
-._wp-pre,
-._wp-tt,
-._wp-code,
-._wp-kbd,
-._wp-samp {
-    font-family: monospace
-}
-
-._wp-pre {
-    white-space: pre
-}
-
-._wp-big {
-    font-size: 1.17em
-}
-
-._wp-small,
-._wp-sub,
-._wp-sup {
-    font-size: .83em
-}
-
-._wp-sub {
-    vertical-align: sub
-}
-
-._wp-sup {
-    vertical-align: super
-}
-
-._wp-s,
-._wp-strike,
-._wp-del {
-    text-decoration: line-through
-}
-
-/*_wp-自定义个性化的css样式*/
-
+.octoParse-i,.octoParse-cite,.octoParse-em,.octoParse-var,.octoParse-address{font-style:italic}
+.octoParse-pre,.octoParse-tt,.octoParse-code,.octoParse-kbd,.octoParse-samp{font-family:monospace}
+.octoParse-pre{white-space:pre}
+.octoParse-big{font-size:1.17em}
+.octoParse-small,.octoParse-sub,.octoParse-sup{font-size:.83em}
+.octoParse-sub{vertical-align:sub}
+.octoParse-sup{vertical-align:super}
+.octoParse-s,.octoParse-strike,.octoParse-del{text-decoration:line-through}
+/*octoParse-自定义个性化的css样式*/
 /*增加video的css样式*/
-
-._wp-strong,
-._wp-s {
-    display: inline
-}
-
-._wp-a {
+.octoParse-strong,.octoParse-s{display: inline}
+.octoParse-a{
     color: deepskyblue;
-    word-break: break-all;
-    overflow: auto;
+    word-break:break-all;
+    overflow:auto;
 }
 
-._wp-video {
+.octoParse-video{
     text-align: center;
     margin: 10px 0;
 }
 
-._wp-video-video {
-    width: 100%;
+.octoParse-video-video{
+    width:100%;
 }
 
-._wp-img {
-    /* background-color: #efefef; */
-    display: block;
-    overflow: hidden;
-}
-
-._wp-img-inline {
+.octoParse-img{
     /*background-color: #efefef;*/
-    display: inline-block;
     overflow: hidden;
 }
 
-._wp-blockquote {
+.octoParse-blockquote {
     margin: 0;
-    padding: 10px 0 10px 5px;
-    font-family: Courier, Calibri, "宋体";
-    background: #f5f5f5;
+    padding:10px 0 10px 5px;
+    font-family:Courier, Calibri,"宋体";
+    background:#f5f5f5;
     border-left: 3px solid #dbdbdb;
 }
 
-._wp-code,
-._wp-wxxxcode-style {
+.octoParse-code,.octoParse-wxxxcode-style{
     display: inline;
-    background: #f5f5f5;
+    background:#f5f5f5;
 }
-
-._wp-ul {
+.octoParse-ul{
     margin: 20rpx 10rpx;
 }
 
-._wp-li,
-._wp-li-inner {
+.octoParse-li,.octoParse-li-inner{
     display: flex;
     align-items: baseline;
     margin: 10rpx 0;
 }
-
-._wp-li-text {
+.octoParse-li-text{
     align-items: center;
     line-height: 20px;
 }
 
-._wp-li-circle {
+.octoParse-li-circle{
     display: inline-flex;
     width: 5px;
     height: 5px;
@@ -229,15 +117,14 @@
     margin-right: 5px;
 }
 
-._wp-li-square {
+.octoParse-li-square{
     display: inline-flex;
     width: 10rpx;
     height: 10rpx;
     background-color: #333;
     margin-right: 5px;
 }
-
-._wp-li-ring {
+.octoParse-li-ring{
     display: inline-flex;
     width: 10rpx;
     height: 10rpx;
@@ -247,66 +134,57 @@
     margin-right: 5px;
 }
 
-/*._wp-table{
+/*.octoParse-table{
     width: 100%;
     height: 400px;
 }
-._wp-thead,._wp-tfoot,._wp-tr{
+.octoParse-thead,.octoParse-tfoot,.octoParse-tr{
     display: flex;
     flex-direction: row;
 }
-._wp-th,._wp-td{
+.octoParse-th,.octoParse-td{
     display: flex;
     width: 580px;
     overflow: auto;
 }*/
 
-._wp-u {
-    text-decoration: underline;
+.octoParse-u {
+  text-decoration: underline;
 }
-
-._wp-hide {
+.octoParse-hide{
     display: none;
 }
-
-.WxEmojiView {
+.WxEmojiView{
     align-items: center;
 }
-
-.wxEmoji {
+.wxEmoji{
     width: 16px;
-    height: 16px;
+    height:16px;
 }
-
-._wp-tr {
-    display: flex;
-    border-right: 1px solid #e0e0e0;
-    border-bottom: 1px solid #e0e0e0;
-    border-top: 1px solid #e0e0e0;
+.octoParse-tr{
+	display: flex;
+	border-right:1px solid #e0e0e0;
+	border-bottom:1px solid #e0e0e0;
+	border-top:1px solid #e0e0e0;
 }
-
-._wp-th,
-._wp-td {
-    flex: 1;
-    padding: 5px;
-    font-size: 28rpx;
-    border-left: 1px solid #e0e0e0;
-    word-break: break-all;
+.octoParse-th,
+.octoParse-td{
+	flex:1;
+	padding:5px;
+	font-size:28rpx;
+	border-left:1px solid #e0e0e0;
+	word-break: break-all;
 }
-
-._wp-td:last {
-    border-top: 1px solid #e0e0e0;
+.octoParse-td:last{
+	border-top:1px solid #e0e0e0;
 }
-
-._wp-th {
-    background: #f0f0f0;
-    border-top: 1px solid #e0e0e0;
+.octoParse-th{
+	background:#f0f0f0;
+	border-top:1px solid #e0e0e0;
 }
-
-._wp-del {
+.octoParse-del{
     display: inline;
 }
-
-._wp-figure {
-    overflow: hidden;
+.octoParse-figure {
+  overflow: hidden;
 }
