@@ -77,6 +77,6 @@
     "yargs": "^3.26.0"
   },
   "dependencies": {
-    "octoparse": "^0.3.0"
+    "octoparse": "^0.3.2"
   }
 }
