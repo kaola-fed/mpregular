@@ -57,7 +57,9 @@ describe('directive', function () {
           </script>
        `,
       function (App) {
-        let node = octoparse.htmlParse('<div>test r html</div>');
+        let node = {
+          nodes: octoparse.htmlParse('<div>test r html</div>')
+        }
         const appData = getAppBaseData({
           __wxparsed: {
             0: node
