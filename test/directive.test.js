@@ -1,6 +1,6 @@
 const {commonCompare, createInstance, getPageInstance} = require('./helpers')
 import {input as inputDataSet} from './helpers/eventDataSet'
-const octoparse = require('octoparse/lib').default;
+const octoparse = require('octoparse');
 const assert = require('./helpers/assert')
 const {getAppData, getAppBaseData} = require('./mock/holder')
 
