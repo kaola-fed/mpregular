@@ -229,6 +229,37 @@ export default {
 <button r-class="{{ rounded: isRounded }}"></button>
 ```
 
+### 异常处理
+
+全局异常处理，在 Regular 对象上定义异常处理方法 `_errorHandler`。
+
+```javascript
+import Regular from 'regularjs'
+
+Regular._errorHandler = function(info, error, vm) {
+  console.log('global handle ====== start')
+  console.log(info, error, vm)
+  console.log('global handle ====== end')
+}
+```
+
+页面和组件中异常处理，在页面或组件中定义异常处理方法 `_errorHanlder`。
+
+```javascript
+export default {
+  mpType: 'page',
+  _errorHandler(info, error, vm) {
+    console.log('handle ====== start')
+    console.log(info, error, vm)
+    console.log('handle ====== end')
+  }
+}
+```
+
+执行优先级，`组件 -> 页面 -> 全局`。
+
+会捕获生命周期钩子和事件处理函数的执行异常，如果没有定义任何 `_errorHandler`，默认行为是打印异常信息。
+
 ### 性能优化
 
 小程序官方文档中特别强调 `setData` 传递大数据时会大量占用 WebView JS 线程，对此 mpregular 做了特别的优化。
